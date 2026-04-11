@@ -1,0 +1,11 @@
+{% extends "base.html" %} {% block title %} Home Page {% endblock %}
+{% block content %}
+<center>
+<p>Paste a link to your decklist here.</p>
+<form method="get">
+    <input style="width:200px" name="url">
+    <button name="start">Analyze Deck</button>
+</form>
+{{decklist}}
+</center>
+{% endblock %}
