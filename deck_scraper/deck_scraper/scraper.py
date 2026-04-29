@@ -16,9 +16,8 @@ REQUEST_HEADERS = {
 class Scraper:
     """Introscraper: Gets all data from keys in a single URL"""
 
-    def __init__(self, url, driver: webdriver = None, waiting_class_name = None, banned: list = list()):
+    def __init__(self, url, driver: webdriver = None, waiting_class_name = None):
         self.url = url
-        self.banned = banned
         self.driver = driver or webdriver.Chrome()
         self.waiting_class_name = None
         self.text = None
@@ -38,6 +37,9 @@ class Scraper:
         html = self.driver.page_source
         self.text = html
         return html
+    
+    def close(self):
+        self.driver.quit()
 
     def scrape(self, indexstart, indexend):
         """Returns a list of strings that bound the starting and ending indecies."""
@@ -46,7 +48,6 @@ class Scraper:
         text = self.text
         data = []
         index = 0
-        blocked = 0
         while (index != -1):
             index = text.find(indexstart)
             if index == -1:
@@ -54,11 +55,5 @@ class Scraper:
             text = text[index+len(indexstart):len(text)]
             index = text.find(indexend)
             word = text[0:(index)]
-            for k in self.banned:
-                if k in word:
-                    blocked = 1
-            if blocked:
-                    text = text[len(word)+1:len(text)]
-            else:
-                data.append(word)
+            data.append(word)
         return(data)

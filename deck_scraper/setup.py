@@ -7,5 +7,5 @@ setup(
    author='Colton Rowe',
    author_email='coltonjack.rowe@gmail.com',
    packages=['deck_scraper'],  #same as name
-   install_requires=['selenium'], #external packages as dependencies
+   install_requires=['selenium','requests'], #external packages as dependencies
 )

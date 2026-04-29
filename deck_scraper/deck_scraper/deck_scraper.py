@@ -1,6 +1,7 @@
 from deck_scraper.scraper import Scraper
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+import requests
 
 class MoxfieldScraper(Scraper):
     def __init__(self, url, driver=None, banned=list()):
@@ -35,20 +36,27 @@ class MoxfieldScraper(Scraper):
             output.append(el.get_attribute("innerText"))
         return output
         
-class ArchidektScraper(Scraper):
-    def __init__(self, url, driver=None, banned=list()):
-        super().__init__(url=url,
-                         driver=driver or webdriver.Chrome(),
-                         waiting_class_name="deckCardWrapper_container__PGeKO",
-                         banned=banned)
+class ArchidektScraper():
+    def __init__(self, url):
+        self.url = url
+        
+    def webtext(self):
+        base_url = "https://archidekt.com/api/decks/"
+        deck_id = self.url.split("/")[-2]
+        response = requests.get(base_url + deck_id)
+        self.text = response.text
+        print("HERE")
+        print(self.text)
+        print("THERE")
         
     def get_commander(self):
-        return super().scrape(indexstart='<meta name="description" content="',
-                              indexend=' -')[0]
+        pass
     
     def get_deck(self):
-        return super().scrape(indexstart='<div class="sc-f126c77f-1 lhCxnG" style="opacity: 1;"><span style="font-size: 12px;">',
-                              indexend='<')
+        pass
+
+    def get_counts(self):
+        pass
         
 class TopdeckScraper(Scraper):
     def __init__(self, url, driver=None, banned=list()):
@@ -71,19 +79,28 @@ SCRAPER_DICT = {"moxfield": MoxfieldScraper,
 
 class DeckScraper():
     def __init__(self, driver=None):
-        self.driver = driver or webdriver.Chrome()
+        self.driver = driver
 
     def scrape(self, url):
         for service in SCRAPER_DICT.keys():
             if url.find(service) != -1:
-                scraper = SCRAPER_DICT[service](url=url, driver=self.driver)
+                
+                # Load scraper
+                scraper_class = SCRAPER_DICT[service]
+                scraper = scraper_class(url=url, driver=self.driver) if self.driver else scraper_class(url=url)
                 scraper.webtext()
+
+                # Get commander, deck, and counts from the scraper
                 commander = scraper.get_commander()
                 counts = scraper.get_counts()
                 deck = scraper.get_deck()
+
+                # Format to dictionary
                 decklist = {"commander": commander,
                             "deck": dict(zip(deck, counts))}
+                scraper.close()
                 return decklist
+            
         raise TypeError(f"Decklist provider not supported: {url}.")
 
 class MultiDeckScraper():
@@ -98,13 +115,3 @@ class MultiDeckScraper():
             decklist = self.scraper.scrape(url)
             decks.append(decklist)
         return decks
-
-if __name__=="__main__":
-    ds = MultiDeckScraper(urls = [
-                                  #"https://archidekt.com/decks/21202156/the_weird_one",
-                                  #"https://topdeck.gg/deck/the-cookout-2025/hcEuVBwz3UhORLTf590MFTxK4DC2",
-                                  #"https://moxfield.com/decks/XtOruYVVu0CDmDzqaKTtkA",
-                                  "https://moxfield.com/decks/KuvVgxGyKU-ID0TSOe8jww",
-                                #   "https://moxfield.com/decks/6AoOr6RAnEiwQ-y2gMjxVA",
-                                  ])
-    print(ds.scrape())

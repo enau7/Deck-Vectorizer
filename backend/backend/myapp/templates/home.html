@@ -1,11 +1,26 @@
 {% extends "base.html" %} {% block title %} Home Page {% endblock %}
 {% block content %}
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"  rel="stylesheet" />
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}" rel="stylesheet" />
+
 <center>
-<p>Paste a link to your decklist here.</p>
-<form method="get">
-    <input style="width:200px" name="url">
-    <button name="start">Analyze Deck</button>
-</form>
+<!-- <form method="get"> -->
+<div>
+    <label for="decklist_link">Paste your decklist URL</label>
+    <input type="url" name="decklist_link" id="decklist_link">
+    <button name="start" id="start">Analyze Deck</button>
+</div>
+<!-- </form> -->
+
 {{decklist}}
+
+<!-- <canvas id="card_map" width=600 height=600 style="border: 1px solid black;"></canvas> -->
+<div id="card_info"></div>
 </center>
+
+{% load static %}
+<script src="{% static 'js/vector-graph.js' %}" defer></script>
+<script src="{% static 'js/interactive_vectors.js' %}" defer></script>
 {% endblock %}
