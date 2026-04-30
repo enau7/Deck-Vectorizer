@@ -11,25 +11,93 @@ const start_button = document.getElementById("start");
 
 let card_vectors = null;
 
+function loading_animation(element, untilCondition = () => false) {
+    const animation = ["Loading", "Loading.", "Loading..", "Loading..."];
+    let index = 0;
+    const intervalId = setInterval(() => {
+        if (untilCondition()) {
+            clearInterval(intervalId);
+            return;
+        }
+        element.innerHTML = animation[index];
+        index = (index + 1) % animation.length;
+    }, 500);
+    return () => clearInterval(intervalId); // Return a function to stop the animation
+}
+
+async function loadData() {
+  try {
+    const response = await fetch('static/json/default_cards.json');
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to load JSON:', error);
+  }
+}
+
+(async () => {
+  cardData = await loadData();
+  console.log(cardData); // now is the array
+})();
+
+// console.log(cardData);
+
+async function getImageLink(card_name) {
+    try {
+    const card = cardData.find(item => item.name === card_name);
+    return card.image_uris.normal;
+    } catch (error) {
+        console.error('Failed to get image:', error);
+    }
+}
+
 start_button.addEventListener("click", async () => {
     try {
         // Add loading animation in the card_info div
-        const cardInfoDiv = document.getElementById("card_info");
-        cardInfoDiv.innerHTML = "<p>Loading...</p>";
+        const cardInfoDiv = document.getElementById("card_map");
+        const status = document.getElementById("status");
+        status.innerHTML = "Status: Loading...";
 
         // Display the Vector Graph
         card_vectors = await fetchCardVectors(url.value);
         console.log("Card vectors:", card_vectors);
         hoverLabel = document.getElementById("hover_label");
-        const graph = new VectorGraph("#card_info", card_vectors, {
-            defaultRadius: 10,
-            repulsion: 1000,
-            autoEdgeThresh: 0.1
+        hoverImage = document.getElementById("hover_img")
+        const graph = new VectorGraph("#card_map", card_vectors, {
+            defaultRadius: 20,
+            repulsion: 3000,
+            autoEdgeThresh: 0.1,
+            padding: 120,
+            drawLabel: false,
+                onHover: async (cardName) => {
+                    if (cardName) {
+                        hoverLabel.innerHTML = `${cardName}`; // Show card name on hover
+                        hoverImage.src = await getImageLink(cardName);
+                    } else {
+                        hoverLabel.innerHTML = ""; // Clear label when not hovering
+                        hoverImage.src = "";
+                    }
+                }
         });
+
+        status.innerText = "";
+
+        // Add card names to the card_list
+        card_names = Object.keys(card_vectors);
+        const cardListDiv = document.getElementById("card_list");
+        cardListDiv.innerHTML = ""; // Clear any existing content
+        card_names.forEach(cardName => {
+            const cardItem = document.createElement("div");
+            cardItem.textContent = cardName;
+            cardListDiv.appendChild(cardItem);
+        });
+
         graph.start();
         console.log("Graph started");
 
     } catch (error) {
         console.error("Error fetching card names:", error);
+        const status = document.getElementById("status");
+        status.innerHTML = "<p>Status: Failed</p>";
     }
 });

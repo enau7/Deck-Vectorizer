@@ -3,21 +3,29 @@
 
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"  rel="stylesheet" />
 {% load static %}
+<link rel="stylesheet" href="{% static 'css/fonts.css' %}" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/style.css' %}" rel="stylesheet" />
 
+<center style="position:relative">
+    <div>
+        <label for="decklist_link">Paste your decklist URL</label>
+        <input type="url" name="decklist_link" id="decklist_link">
+        <button name="start" id="start">Analyze Deck</button>
+    </div>
+    <p class="floating-right" id="status"></p>
+</center>
 <center>
-<!-- <form method="get"> -->
-<div>
-    <label for="decklist_link">Paste your decklist URL</label>
-    <input type="url" name="decklist_link" id="decklist_link">
-    <button name="start" id="start">Analyze Deck</button>
+<div id="interactive-content">
+    <div id="card_info">
+        <p id="hover_label"></p>
+        <img id="hover_img">
+    </div>
+    <div id="card_map"></div>
+    <div id="card_list"></div>
 </div>
-<!-- </form> -->
-
-{{decklist}}
-
-<!-- <canvas id="card_map" width=600 height=600 style="border: 1px solid black;"></canvas> -->
-<div id="card_info"></div>
 </center>
 
 {% load static %}

@@ -7,12 +7,13 @@ class MoxfieldScraper(Scraper):
     def __init__(self, url, driver=None, banned=list()):
         super().__init__(url=url,
                          driver=driver or webdriver.Chrome(),
-                         waiting_class_name="decklist-card",
-                         banned=banned)
+                         waiting_class_name="decklist-card")
         
     def get_commander(self):
-        return super().scrape(indexstart='Commander (',
-                              indexend=')')[0]
+        try:
+            return super().scrape(indexstart='Commander (', indexend=')')[0]
+        except:
+            return None
     
     def get_counts(self):
         values = list()
@@ -62,8 +63,7 @@ class TopdeckScraper(Scraper):
     def __init__(self, url, driver=None, banned=list()):
         super().__init__(url=url,
                          driver=driver or webdriver.Chrome(),
-                         waiting_class_name="type-header",
-                         banned=banned)
+                         waiting_class_name="type-header")
         
     def get_commander(self):
         return " / ".join(super().scrape(indexstart='<div class="commander-card" data-name="',

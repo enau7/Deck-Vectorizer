@@ -11,11 +11,15 @@ with open("repo/data/default_cards.json") as card_data:
 
     names = data["name"].values
     oracle_texts = [text if type(text) == str else "" for text in data["oracle_text"].values]
-
+    images = [src if type(src) == str else "" for src in data["image_uris"]["normal"].values]
     embeddings = model.encode(oracle_texts, show_progress_bar=True)
 
-    card_embeddings = {name: embedding for name, embedding in zip(names, embeddings)}
+    card_embeddings = {name: {"embedding": embedding.tolist(),
+                              "oracle_text": oracle_text,
+                              "img_src": images}
+                       for name, embedding, oracle_text
+                       in zip(names, embeddings, oracle_texts)}
 
     # Save the embeddings
     with open("repo/data/card_embeddings.json", "w") as f:
-        json.dump({card: embedding.tolist() for card, embedding in card_embeddings.items()}, f)
+        json.dump(card_embeddings, f)

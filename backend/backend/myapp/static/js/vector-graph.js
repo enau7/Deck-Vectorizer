@@ -99,6 +99,7 @@
       labelFont:       '13px sans-serif',
       labelColor:      '#333333',
       labelBelow:      true,
+      drawLabel:       true,
       backgroundColor: 'transparent',
       autoEdges:       true,
       autoEdgeThresh:  0.4,
@@ -125,8 +126,8 @@
         connections: def.connections || null,
         data:     def.data    || {},
         // physics state (canvas px)
-        x:        this._targetPx[i].x + (Math.random() - 0.5) * this.opts.width * 0.05,
-        y:        this._targetPx[i].y + (Math.random() - 0.5) * this.opts.height * 0.05,
+        x:        this._targetPx[i].x + (Math.random() - 0.5) * this.opts.width, //* 0.05,
+        y:        this._targetPx[i].y + (Math.random() - 0.5) * this.opts.height, //* 0.05,
         vx:       0,
         vy:       0,
         // loaded image element
@@ -176,9 +177,9 @@
     const sx  = (W - 2 * pad) / Math.max(mxX - mnX, 0.001);
     const sy  = (H - 2 * pad) / Math.max(mxY - mnY, 0.001);
     const sc  = Math.min(sx, sy);
-    const ox  = (W - (mxX + mnX) * sc) / 2;
-    const oy  = (H - (mxY + mnY) * sc) / 2;
-    return positions.map(([x, y]) => ({ x: x * sc + ox, y: y * sc + oy }));
+    const ox  = (W - (mxX + mnX) * sx) / 2;
+    const oy  = (H - (mxY + mnY) * sy) / 2;
+    return positions.map(([x, y]) => ({ x: x * sx + ox, y: y * sy + oy }));
   };
 
   // ── build edge list ──
@@ -433,7 +434,14 @@
         ctx.font         = `bold ${Math.round(r * 0.55)}px sans-serif`;
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(_initials(nd.label), nd.x, nd.y);
+
+        const shorthand = _shorthand(nd.label);
+        if (shorthand.length == 1) {
+          ctx.fillText(shorthand[0], nd.x, nd.y);
+        } else {
+          ctx.fillText(shorthand[0], nd.x, nd.y - r * 0.3);
+          ctx.fillText(shorthand[1], nd.x, nd.y + r * 0.3);
+        }
       }
 
       ctx.restore(); // un-clip
@@ -441,6 +449,7 @@
       ctx.restore(); // un-shadow
 
       // ── label ──
+      if (this.opts.drawLabel === false) continue;
       const labelY = o.labelBelow
         ? nd.y + r + o.ringWidth + 14
         : nd.y - r - o.ringWidth - 6;
@@ -561,9 +570,9 @@
 
   // ── private utils ─────────────────────────────────────────────────────────
 
-  function _initials(str) {
+  function _shorthand(str) {
     if (!str) return '?';
-    return str.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+    return str.trim().split(/\s+/).slice(0, 2).map(w => w.slice(0, 3).toUpperCase());
   }
 
   function _lighten(hex, amount) {
