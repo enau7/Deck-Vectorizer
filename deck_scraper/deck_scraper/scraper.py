@@ -32,8 +32,8 @@ class Scraper:
                 element = WebDriverWait(self.driver, 10).until(
                     EC.presence_of_element_located((By.CLASS_NAME, self.waiting_class_name))
                 )
-            except:
-                ...
+            except Exception as e:
+                print(f"WebDriverWait failed... {e}")
         html = self.driver.page_source
         self.text = html
         return html

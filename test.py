@@ -1,5 +1,7 @@
-from deck_scraper.deck_scraper import DeckScraper, MultiDeckScraper
+from deck_scraper.deck_scraper import DeckScraper
+from selenium import webdriver
 
 if __name__=="__main__":
-    ds = DeckScraper()
-    print(ds.scrape("https://archidekt.com/decks/21202156/the_weird_one"))
+    ds = DeckScraper(driver=webdriver.Chrome())
+    print(ds.scrape("https://moxfield.com/decks/sOE8Hduq-kqQ3je7FqD02g"))
+    print(ds.scrape("https://moxfield.com/decks/KuvVgxGyKU-ID0TSOe8jww"))

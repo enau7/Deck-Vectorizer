@@ -6,6 +6,30 @@ async function fetchCardVectors(decklist) {
     return await response.json();
 }
 
+async function fetchDecklist(url) {
+    const response = await fetch(`/myapp/get_decklist/${encodeURIComponent(url)}`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch card names for decklist: ${url}`);
+    }
+    return await response.json();
+}
+
+async function fetchClusters() {
+    const response = await fetch(`/myapp/cluster_decklist/`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch clusters for decklist.`);
+    }
+    return await response.json();
+}
+
+async function fetchClusterLabels(decklist) {
+    const response = await fetch(`/myapp/get_cluster_labels/`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch cluster labels for decklist.`);
+    }
+    return await response.json();
+}
+
 const url = document.getElementById("decklist_link");
 const start_button = document.getElementById("start");
 
@@ -56,11 +80,23 @@ start_button.addEventListener("click", async () => {
         // Add loading animation in the card_info div
         const cardInfoDiv = document.getElementById("card_map");
         const status = document.getElementById("status");
-        status.innerHTML = "Status: Loading...";
+        status.innerHTML = "Status: Fetching Decklist...";
 
-        // Display the Vector Graph
-        card_vectors = await fetchCardVectors(url.value);
-        console.log("Card vectors:", card_vectors);
+        // Get and display decklist
+        card_names = await fetchDecklist(url.value);
+        card_names = card_names["card_names"]
+        // const cardListDiv = document.getElementById("card_list");
+        // cardListDiv.innerHTML = ""; // Clear any existing content
+        // card_names.forEach(cardName => {
+        //     const cardItem = document.createElement("div");
+        //     cardItem.textContent = cardName;
+        //     cardListDiv.appendChild(cardItem);
+        // });
+
+        status.innerHTML = "Status: Clustering Data...";
+
+        // Get and display clusters
+        card_vectors = await fetchClusters()
         hoverLabel = document.getElementById("hover_label");
         hoverImage = document.getElementById("hover_img")
         const graph = new VectorGraph("#card_map", card_vectors, {
@@ -80,20 +116,20 @@ start_button.addEventListener("click", async () => {
                 }
         });
 
-        status.innerText = "";
-
-        // Add card names to the card_list
-        card_names = Object.keys(card_vectors);
-        const cardListDiv = document.getElementById("card_list");
-        cardListDiv.innerHTML = ""; // Clear any existing content
-        card_names.forEach(cardName => {
-            const cardItem = document.createElement("div");
-            cardItem.textContent = cardName;
-            cardListDiv.appendChild(cardItem);
-        });
-
         graph.start();
         console.log("Graph started");
+
+        const cluster_labels = await fetchClusterLabels();
+        const legend = document.getElementById("legend")
+
+        for (const [color, label] of cluster_labels) {
+            const p = document.createElement("div");
+            p.style.color = color;
+            p.textContent = label;
+            legend.appendChild(p);
+        }
+
+        status.innerHTML = "";
 
     } catch (error) {
         console.error("Error fetching card names:", error);

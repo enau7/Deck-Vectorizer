@@ -1,7 +1,10 @@
 from deck_scraper.scraper import Scraper
 from selenium import webdriver
+from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 import requests
+import time
 
 class MoxfieldScraper(Scraper):
     def __init__(self, url, driver=None, banned=list()):
@@ -16,6 +19,12 @@ class MoxfieldScraper(Scraper):
             return None
     
     def get_counts(self):
+        WebDriverWait(self.driver, 10).until(
+            EC.any_of(
+                EC.presence_of_all_elements_located((By.CLASS_NAME, "decklist-card-quantity")),
+                EC.presence_of_all_elements_located((By.CLASS_NAME, "dcD5V3uk1cjCKIMHR5hC"))
+            )
+        )
         values = list()
         for el in self.driver.find_elements(By.CLASS_NAME, "decklist-card-quantity"):
             try:
@@ -28,6 +37,12 @@ class MoxfieldScraper(Scraper):
 
     def get_deck(self):
         output = list()
+        WebDriverWait(self.driver, 10).until(
+            EC.any_of(
+                EC.presence_of_all_elements_located((By.CLASS_NAME, "table-deck-row-link")),
+                EC.presence_of_all_elements_located((By.CLASS_NAME, "decklist-card-phantomsearch"))
+            )
+        )
         for el in self.driver.find_elements(By.CLASS_NAME, "table-deck-row-link"):
             words = el.find_elements(By.CLASS_NAME, "underline")
             name = "".join([word.get_attribute("innerHTML") for word in words])
@@ -79,7 +94,7 @@ SCRAPER_DICT = {"moxfield": MoxfieldScraper,
 
 class DeckScraper():
     def __init__(self, driver=None):
-        self.driver = driver
+        self.driver = webdriver.Chrome()
 
     def scrape(self, url):
         for service in SCRAPER_DICT.keys():
@@ -98,7 +113,6 @@ class DeckScraper():
                 # Format to dictionary
                 decklist = {"commander": commander,
                             "deck": dict(zip(deck, counts))}
-                scraper.close()
                 return decklist
             
         raise TypeError(f"Decklist provider not supported: {url}.")

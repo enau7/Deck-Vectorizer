@@ -64,20 +64,20 @@ input [type="url"] {
     margin-top: 20px;
 }
 
-#card_info, #card_list {
+#card_info, #card_list, #legend {
     padding: 10px;
     width: 20%;
     aspect-ratio: 3 / 5;
 }
 
-#card_list {
+#card_list, #legend {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     align-items: left;
 }
 
-#card_list > * {
+#card_list > *, #legend > * {
     border-bottom: 1px solid #000000;
 }
 
