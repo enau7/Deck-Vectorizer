@@ -51,7 +51,7 @@ function loading_animation(element, untilCondition = () => false) {
 
 async function loadData() {
   try {
-    const response = await fetch('static/json/default_cards.json');
+    const response = await fetch('static/json/oracle_cards.json');
     const data = await response.json();
     return data;
   } catch (error) {
@@ -85,13 +85,6 @@ start_button.addEventListener("click", async () => {
         // Get and display decklist
         card_names = await fetchDecklist(url.value);
         card_names = card_names["card_names"]
-        // const cardListDiv = document.getElementById("card_list");
-        // cardListDiv.innerHTML = ""; // Clear any existing content
-        // card_names.forEach(cardName => {
-        //     const cardItem = document.createElement("div");
-        //     cardItem.textContent = cardName;
-        //     cardListDiv.appendChild(cardItem);
-        // });
 
         status.innerHTML = "Status: Clustering Data...";
 

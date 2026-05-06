@@ -1,4 +1,5 @@
 django
+django-environ
 selenium
 sentence-transformers
 pandas
