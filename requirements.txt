@@ -1,0 +1,10 @@
+django
+selenium
+sentence-transformers
+pandas
+matplotlib
+numpy<2
+scikit-learn
+umap-learn
+requests
+environ
