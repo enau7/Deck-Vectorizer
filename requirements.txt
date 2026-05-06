@@ -10,3 +10,5 @@ umap-learn
 requests
 environ
 gunicorn
+whitenoise
+psycopg2-binary
