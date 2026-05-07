@@ -17,10 +17,15 @@ from sklearn.metrics import silhouette_score
 def home(request):
     return render(request, "home.html")
 
-DECKSCRAPER = DeckScraper()
+DECKSCRAPER = None
 
 def get_decklist(request, url):
-    deck = DECKSCRAPER.scrape(url)
+
+    global DECKSCRAPER
+    if DECKSCRAPER is None:
+        DECKSCRAPER = DeckScraper()
+
+    deck = DeckScraper().scrape(url)
     with open(os.path.join(settings.BASE_DIR, 'myapp/static/json/card_embeddings.json'), "r") as f:
         card_embeddings = json.load(f)
 

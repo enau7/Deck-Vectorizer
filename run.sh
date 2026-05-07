@@ -12,4 +12,4 @@ sudo apt install -y \
 pip install ./deck_scraper
 python backend/manage.py migrate
 python backend/manage.py
-gunicorn backend.wsgi
+gunicorn backend.wsgi --workers 2 --threads 1
