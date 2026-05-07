@@ -70,17 +70,10 @@ async function loadData() {
   }
 }
 
-(async () => {
-  cardData = await loadData();
-  console.log(cardData); // now is the array
-})();
-
-// console.log(cardData);
-
-async function getImageLink(card_name) {
+async function getImageLink(card_vectors, card_name) {
     try {
-    const card = cardData.find(item => item.name === card_name);
-    return card.image_uris.normal;
+    const card = card_vectors[card_name];
+    return card["img_src"];
     } catch (error) {
         console.error('Failed to get image:', error);
     }
@@ -112,7 +105,7 @@ start_button.addEventListener("click", async () => {
                 onHover: async (cardName) => {
                     if (cardName) {
                         hoverLabel.innerHTML = `${cardName}`; // Show card name on hover
-                        hoverImage.src = await getImageLink(cardName);
+                        hoverImage.src = await getImageLink(card_vectors, cardName);
                     } else {
                         hoverLabel.innerHTML = ""; // Clear label when not hovering
                         hoverImage.src = "";
@@ -122,6 +115,10 @@ start_button.addEventListener("click", async () => {
 
         graph.start();
         console.log("Graph started");
+
+        window.addEventListener("resize", async() => {
+            graph.resize(cardInfoDiv.clientWidth, cardInfoDiv.clientHeight)
+        })
 
         const cluster_labels = await fetchClusterLabels();
         const legend = document.getElementById("legend");

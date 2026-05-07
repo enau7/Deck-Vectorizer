@@ -24,6 +24,11 @@ html, body, #content, #interactive-content {
     width: 100%;
 }
 
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
 #lily-pond {
     height: 50px;
     width: auto;
@@ -44,14 +49,14 @@ input [type="url"] {
 }
 
 .legal {
-    display:flex;
+    display: flex;
     flex-direction: column;
 }
 
-.floating-right {
-    position:absolute;
-    left: 90%;
-    bottom: 0%
+#status {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 25%);
 }
 
 #interactive-content {
@@ -71,8 +76,6 @@ input [type="url"] {
 }
 
 #card_list, #legend {
-    display: flex;
-    flex-direction: column;
     overflow-y: auto;
     align-items: left;
 }
@@ -86,12 +89,46 @@ input [type="url"] {
     border: 1px solid #95AFC8;
     border-radius: 10px;
     background-color: #f9f9f9;
-    width: 70%;
-    aspect-ratio: 5 / 3;
+    width: 60%;
+    height: 70vh;
+    overflow: hidden;
+}
+
+@media (max-width: flex-width) {
+  #card_map {
+    width: 100%;
+    order: 0;
+  }
+}
+
+#card_map canvas {
+    inset: 0;
+    height: 100%;
 }
 
 #hover_img {
     max-width: 100%;
+}
+
+@media (max-width: 700px) {
+  #interactive-content {
+    flex-wrap: wrap;
+    flex-direction: column;
+  }
+  #card_map {
+    width: 100%;
+    order: 0;
+  }
+  #legend {
+    width: 100%;
+    aspect-ratio: unset;
+    order: 1;
+  }
+  #card_info {
+    width: 80%;
+    height: auto;
+    order: 2;
+  }
 }
 
 /* #card_list {

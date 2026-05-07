@@ -36,11 +36,13 @@ def get_decklist(request, url):
         card_names = list(decklist_embeddings.keys())
         embeddings = [decklist_embeddings[name]["embedding"] for name in card_names]
         oracle_texts = [decklist_embeddings[name]["oracle_text"] for name in card_names]
+        img_srcs = [decklist_embeddings[name]["img_src"] for name in card_names]
 
         card_info = {
             "card_names": card_names,
             "embeddings" : embeddings,
-            "oracle_texts" : oracle_texts
+            "oracle_texts" : oracle_texts,
+            "img_srcs" : img_srcs,
         }
         
         request.session["card_info"] = card_info
@@ -62,6 +64,7 @@ def cluster_decklist(request):
     card_names = decklist["card_names"]
     embeddings = decklist["embeddings"]
     oracle_texts = decklist["oracle_texts"]
+    img_srcs = decklist["img_srcs"]
 
     umap = UMAP(n_components=2, n_neighbors=len(card_names)//8, min_dist=0.1, metric='cosine')
     embeddings_2d = umap.fit_transform(np.array(embeddings))
@@ -96,6 +99,7 @@ def cluster_decklist(request):
             "position": scaled_vectors[i].astype(float).tolist(),
             "oracle_text": oracle_texts[i],
             "color": cluster_colors[cluster_labels[i]],
+            "img_src": img_srcs[i],
         }
 
     request.session["cluster"] = cluster

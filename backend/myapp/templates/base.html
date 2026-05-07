@@ -29,17 +29,19 @@
         </ul>
       </div>
     </nav>
-    <div id="content" class="container">{% block content %} {% endblock %}</div>
-    <center>
-      <div class="legal">
-        <small id="legal-wizards">
-        CardPond is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
-      </small>
-      <small id="legal-scryfall">
-        Card names, oracle text, and images are sourced from scryfall.com. Learn more: <a href="https://scryfall.com/docs/api">https://scryfall.com/docs/api</a>.
-      </small>
+      <div id="content" class="container">
+        {% block content %} {% endblock %}
+        <center>
+        <div class="legal">
+          <small id="legal-wizards">
+            CardPond is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
+          </small>
+          <small id="legal-scryfall">
+            Card names, oracle text, and images are sourced from scryfall.com. Learn more: <a href="https://scryfall.com/docs/api">https://scryfall.com/docs/api</a>.
+          </small>
+        </div>
+      </center>
       </div>
-    </center>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" ></script>
     <div style="height: 100px"></div>
