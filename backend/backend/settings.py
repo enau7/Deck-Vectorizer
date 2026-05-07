@@ -20,7 +20,7 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 
 ALLOWED_HOSTS = ["*"]#env.list("ALLOWED_HOSTS", default=[])
-CSRF_TRUSTED_ORIGINS = ["*"]#env.list("CSRF_TRUSTED_ORIGINS", default=[])
+CSRF_TRUSTED_ORIGINS = ["https://*", "http://*"]#env.list("CSRF_TRUSTED_ORIGINS", default=[])
 
 
 # Application definition
@@ -109,4 +109,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'static'
