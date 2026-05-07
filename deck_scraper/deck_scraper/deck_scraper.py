@@ -4,6 +4,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import requests
+import json
 import time
 
 class MoxfieldScraper(Scraper):
@@ -59,20 +60,23 @@ class ArchidektScraper():
     def webtext(self):
         base_url = "https://archidekt.com/api/decks/"
         deck_id = self.url.split("/")[-2]
-        response = requests.get(base_url + deck_id)
+        url = base_url + deck_id + "/"
+        response = requests.get(url)
         self.text = response.text
-        print("HERE")
-        print(self.text)
-        print("THERE")
+        self.response_dict = json.loads(self.text)
+        print(type(self.response_dict))
+        print(self.response_dict.keys() if type(self.response_dict) == dict else self.response_dict)
         
     def get_commander(self):
-        pass
+        return self.response_dict["cards"][-1]["card"]["oracleCard"]["name"]
     
     def get_deck(self):
-        pass
+        decklist = [card["card"]["oracleCard"]["name"] for card in self.response_dict["cards"]]
+        return decklist
 
     def get_counts(self):
-        pass
+        counts = [card["quantity"] for card in self.response_dict["cards"]]
+        return counts
         
 class TopdeckScraper(Scraper):
     def __init__(self, url, driver=None, banned=list()):
@@ -94,7 +98,7 @@ SCRAPER_DICT = {"moxfield": MoxfieldScraper,
 
 class DeckScraper():
     def __init__(self, driver=None):
-        self.driver = webdriver.Chrome()
+        self.driver = None
 
     def scrape(self, url):
         for service in SCRAPER_DICT.keys():
@@ -102,8 +106,11 @@ class DeckScraper():
                 
                 # Load scraper
                 scraper_class = SCRAPER_DICT[service]
-                scraper = scraper_class(url=url, driver=self.driver) if self.driver else scraper_class(url=url)
-                scraper.webtext()
+                try:
+                    scraper = scraper_class(url=url, driver=self.driver) if self.driver else scraper_class(url=url)
+                    scraper.webtext()
+                except Exception as e:
+                    raise ValueError(f"Error fetching decklist: {e}.")
 
                 # Get commander, deck, and counts from the scraper
                 commander = scraper.get_commander()

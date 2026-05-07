@@ -180,5 +180,5 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# Large files
-*.json
+# Data folder (it'smostly for testing)
+data/
