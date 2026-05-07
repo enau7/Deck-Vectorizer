@@ -22,6 +22,7 @@ DECKSCRAPER = None
 
 def get_decklist(request, url):
     try:
+        raise ValueError()
         global DECKSCRAPER
         if DECKSCRAPER is None:
             DECKSCRAPER = DeckScraper()
@@ -48,8 +49,10 @@ def get_decklist(request, url):
         return HttpResponse(json.dumps(card_info))
     
     except Exception as e:
+        error = traceback.format_exc()
+        print(f"Error: {error}")
         return HttpResponse(
-            "<pre>" + traceback.format_exc() + "</pre>",
+            "<pre>" + error + "</pre>",
             status=500
         )
 

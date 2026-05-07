@@ -8,20 +8,21 @@ async function fetchCardVectors(decklist) {
 
 async function fetchDecklist(url) {
     const response = await fetch(`/myapp/get_decklist/${encodeURIComponent(url)}`);
+    const body = await response.text();
+
     if (!response.ok) {
-        let errorText;
-
-        // Try to read JSON; if it fails, fallback to plain text
-        try {
-            const data = await response.json();
-            errorText = JSON.stringify(data);
-        } catch (e) {
-            errorText = await response.text();  // often HTML for 500 errors
-        }
-
+        let errorText = body;
+        try {errorText = JSON.stringify(JSON.parse(body));} catch (_) {}
         throw new Error(`Failed to fetch card names for decklist: ${url}. Server replied: ${errorText}`);
     }
-    return await response.json();
+
+    // If OK, then try to parse JSON from the body we already read
+    try {
+        return JSON.parse(body);
+    } 
+    catch (e) {
+        throw new Error(`Invalid JSON returned from server: ${body}`);
+    }
 }
 
 async function fetchClusters() {
