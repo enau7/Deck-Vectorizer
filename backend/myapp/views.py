@@ -22,7 +22,6 @@ DECKSCRAPER = None
 
 def get_decklist(request, url):
     try:
-        raise ValueError()
         global DECKSCRAPER
         if DECKSCRAPER is None:
             DECKSCRAPER = DeckScraper()
