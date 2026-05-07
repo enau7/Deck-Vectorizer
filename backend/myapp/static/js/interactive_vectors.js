@@ -113,7 +113,9 @@ start_button.addEventListener("click", async () => {
         console.log("Graph started");
 
         const cluster_labels = await fetchClusterLabels();
-        const legend = document.getElementById("legend")
+        const legend = document.getElementById("legend");
+
+        legend.innerHTML = "";
 
         for (const [color, label] of cluster_labels) {
             const p = document.createElement("div");

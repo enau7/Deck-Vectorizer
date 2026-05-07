@@ -12,6 +12,7 @@ from sklearn.cluster import KMeans, SpectralClustering
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics import silhouette_score
+import traceback
 
 # Create your views here.
 def home(request):
@@ -20,31 +21,37 @@ def home(request):
 DECKSCRAPER = None
 
 def get_decklist(request, url):
+    try:
+        global DECKSCRAPER
+        if DECKSCRAPER is None:
+            DECKSCRAPER = DeckScraper()
 
-    global DECKSCRAPER
-    if DECKSCRAPER is None:
-        DECKSCRAPER = DeckScraper()
+        deck = DeckScraper().scrape(url)
+        with open(os.path.join(settings.BASE_DIR, 'myapp/static/json/card_embeddings.json'), "r") as f:
+            card_embeddings = json.load(f)
 
-    deck = DeckScraper().scrape(url)
-    with open(os.path.join(settings.BASE_DIR, 'myapp/static/json/card_embeddings.json'), "r") as f:
-        card_embeddings = json.load(f)
+        decklist_cards = deck["deck"].keys()
+        decklist_embeddings = {card: card_embeddings[card] for card in decklist_cards if card in card_embeddings}
+        
+        card_names = list(decklist_embeddings.keys())
+        embeddings = [decklist_embeddings[name]["embedding"] for name in card_names]
+        oracle_texts = [decklist_embeddings[name]["oracle_text"] for name in card_names]
 
-    decklist_cards = deck["deck"].keys()
-    decklist_embeddings = {card: card_embeddings[card] for card in decklist_cards if card in card_embeddings}
+        card_info = {
+            "card_names": card_names,
+            "embeddings" : embeddings,
+            "oracle_texts" : oracle_texts
+        }
+        
+        request.session["card_info"] = card_info
+
+        return HttpResponse(json.dumps(card_info))
     
-    card_names = list(decklist_embeddings.keys())
-    embeddings = [decklist_embeddings[name]["embedding"] for name in card_names]
-    oracle_texts = [decklist_embeddings[name]["oracle_text"] for name in card_names]
-
-    card_info = {
-        "card_names": card_names,
-        "embeddings" : embeddings,
-        "oracle_texts" : oracle_texts
-    }
-    
-    request.session["card_info"] = card_info
-
-    return HttpResponse(json.dumps(card_info))
+    except Exception as e:
+        return HttpResponse(
+            "<pre>" + traceback.format_exc() + "</pre>",
+            status=500
+        )
 
 def cluster_decklist(request):
 
