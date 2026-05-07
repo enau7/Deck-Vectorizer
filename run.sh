@@ -10,5 +10,6 @@ sudo apt install -y \
     libasound2 \
     libgtk-3-0
 pip install ./deck_scraper
-python backend/manage.py migrate
-gunicorn backend.backend.wsgi:myapp --workers 2 --threads 1
+cd backend
+python manage.py migrate
+gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 1
