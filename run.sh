@@ -13,4 +13,5 @@ pip install ./deck_scraper
 cd backend
 python manage.py migrate
 python manage.py collectstatic
-gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 2 --threads 1
+python myapp/static/get_and_process.py
+gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --workers 1 --threads 2
