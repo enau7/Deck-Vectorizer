@@ -11,5 +11,4 @@ sudo apt install -y \
     libgtk-3-0
 pip install ./deck_scraper
 python backend/manage.py migrate
-python backend/manage.py
-gunicorn backend.wsgi:myapp --workers 2 --threads 1
+gunicorn backend.backend.wsgi:myapp --workers 2 --threads 1
