@@ -9,7 +9,17 @@ async function fetchCardVectors(decklist) {
 async function fetchDecklist(url) {
     const response = await fetch(`/myapp/get_decklist/${encodeURIComponent(url)}`);
     if (!response.ok) {
-        throw new Error(`Failed to fetch card names for decklist: ${url}`);
+        let errorText;
+
+        // Try to read JSON; if it fails, fallback to plain text
+        try {
+            const data = await response.json();
+            errorText = JSON.stringify(data);
+        } catch (e) {
+            errorText = await response.text();  // often HTML for 500 errors
+        }
+
+        throw new Error(`Failed to fetch card names for decklist: ${url}. Server replied: ${errorText}`);
     }
     return await response.json();
 }
