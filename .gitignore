@@ -180,8 +180,11 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# Data folder (it'smostly for testing)
+# Data folder (it's mostly for testing)
 data/
+
+# Static
+/backend/static
 
 # Large files
 *.json

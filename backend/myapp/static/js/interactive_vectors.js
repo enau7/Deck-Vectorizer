@@ -86,6 +86,11 @@ start_button.addEventListener("click", async () => {
         const status = document.getElementById("status");
         status.innerHTML = "Status: Fetching Decklist...";
 
+        // Catch unsupported links
+        if (! url.value.includes("archidekt")){
+            throw(Error);
+        }
+
         // Get and display decklist
         card_names = await fetchDecklist(url.value);
         card_names = card_names["card_names"]
@@ -138,5 +143,8 @@ start_button.addEventListener("click", async () => {
         console.error("Error fetching card names:", error);
         const status = document.getElementById("status");
         status.innerHTML = "<p>Status: Failed</p>";
+        if (! url.value.includes("archidekt")){
+            status.innerHTML = "<p>Status: Decklist provider not supported (Only Archidekt for now!).</p>"
+        }
     }
 });

@@ -64,8 +64,6 @@ class ArchidektScraper():
         response = requests.get(url)
         self.text = response.text
         self.response_dict = json.loads(self.text)
-        print(type(self.response_dict))
-        print(self.response_dict.keys() if type(self.response_dict) == dict else self.response_dict)
         
     def get_commander(self):
         return self.response_dict["cards"][-1]["card"]["oracleCard"]["name"]

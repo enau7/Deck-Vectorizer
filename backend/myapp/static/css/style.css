@@ -94,13 +94,6 @@ input [type="url"] {
     overflow: hidden;
 }
 
-@media (max-width: flex-width) {
-  #card_map {
-    width: 100%;
-    order: 0;
-  }
-}
-
 #card_map canvas {
     inset: 0;
     height: 100%;
@@ -113,29 +106,21 @@ input [type="url"] {
 @media (max-width: 700px) {
   #interactive-content {
     flex-wrap: wrap;
-    flex-direction: column;
+    flex-direction: row;
   }
   #card_map {
     width: 100%;
     order: 0;
   }
   #legend {
-    width: 100%;
+    width: 45%;
+    align-self: right center;
     aspect-ratio: unset;
     order: 1;
   }
   #card_info {
-    width: 80%;
+    width: 45%;
     height: auto;
     order: 2;
   }
 }
-
-/* #card_list {
-    padding: 10px;
-    border: 2px solid #000000;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-    width: 30%;
-    aspect-ratio: 3 / 5;
-} */

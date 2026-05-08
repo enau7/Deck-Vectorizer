@@ -18,6 +18,9 @@ import traceback
 def home(request):
     return render(request, "home.html")
 
+def about(request):
+    return render(request, "about.html")
+
 DECKSCRAPER = None
 
 def get_decklist(request, url):
@@ -209,7 +212,3 @@ def get_card_vectors(request, decklist):
         }
 
     return HttpResponse(json.dumps(card_data))
-
-def todos(request):
-    items = TodoItem.objects.all()
-    return render(request, "todos.html", {"todos": items})
