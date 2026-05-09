@@ -126,8 +126,8 @@
         connections: def.connections || null,
         data:     def.data    || {},
         // physics state (canvas px)
-        x:        this._targetPx[i].x + (Math.random() - 0.5) * this.opts.width, //* 0.05,
-        y:        this._targetPx[i].y + (Math.random() - 0.5) * this.opts.height, //* 0.05,
+        x:        this._targetPx[i].x,// + (Math.random() - 0.5) * this.opts.width * 0.05,
+        y:        this._targetPx[i].y,// + (Math.random() - 0.5) * this.opts.height * 0.05,
         vx:       0,
         vy:       0,
         // loaded image element

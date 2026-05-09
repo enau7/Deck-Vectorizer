@@ -103,9 +103,9 @@ start_button.addEventListener("click", async () => {
         hoverImage = document.getElementById("hover_img")
         const graph = new VectorGraph("#card_map", card_vectors, {
             defaultRadius: 20,
-            repulsion: 3000,
+            repulsion: 500,
             autoEdgeThresh: 0.1,
-            padding: 120,
+            padding: 40,
             drawLabel: false,
                 onHover: async (cardName) => {
                     if (cardName) {
