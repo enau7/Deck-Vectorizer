@@ -28,20 +28,20 @@ JavaScript · HTML+CSS · Python
     ├── Embeddings precomputed using SentenceTransformers.
     └── Embeddings, card name, text and image uri saved to JSON file.
 
-    Django Backend
+    Django App
     │
-    ├── REST API
+    ├── REST API Backend
     │   │
     │   ├── Deck scraper/fetcher gets decklist.
     │   ├── JSON/Database provides embeddings from card name (unique identifier for MTG).
     │   ├── Dimensionality Reduction (UMAP).
     │   └── Clusters generated (Spectral Clustering)
-
-    HTML/CSS/JS Frontend
     │
-    ├── Each request stored in session (Deck fetcher → Embeddings → Reduction → Clustering)
-    ├── Status element shows computation step.
-    └── Interactive Visualization shows result.
+    └── HTML/CSS/JS Frontend
+        │
+        ├── Each request stored in session (Deck fetcher → Embeddings → Reduction → Clustering)
+        ├── Status element shows computation step.
+        └── Interactive Visualization shows result.
 
     Postgres Database
     │
