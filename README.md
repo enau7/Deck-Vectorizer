@@ -51,5 +51,6 @@ JavaScript · HTML+CSS · Python
 
 -   Containerize with Docker for Git LFS.
 -   Better CI/CD and testing.
+-   "Recently visited" decklists.
 -   Card neighborhood visualization.
 -   Vector card search.
