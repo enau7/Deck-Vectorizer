@@ -1,3 +1,12 @@
+const developing_locally = (async () => {
+    const response = await fetch(`/myapp/developing_locally/`);
+    if (!response.ok) {
+        throw new Error(`Failed to check local development status.`);
+    }
+    const localDevelopment = await response.json();
+    return localDevelopment === "true";
+})();
+
 async function fetchCardVectors(decklist) {
     const response = await fetch(`/myapp/get_card_vectors/${encodeURIComponent(decklist)}`);
     if (!response.ok) {
@@ -87,8 +96,9 @@ start_button.addEventListener("click", async () => {
         status.innerHTML = "Status: Fetching Decklist...";
 
         // Catch unsupported links
-        if (! url.value.includes("archidekt")){
-            throw(Error);
+        if (!((url.value.includes("moxfield") && developing_locally) ||
+               url.value.includes("archidekt"))) {
+            throw(new Error("Only Archidekt links are supported."));
         }
 
         // Get and display decklist
@@ -103,9 +113,9 @@ start_button.addEventListener("click", async () => {
         hoverImage = document.getElementById("hover_img")
         const graph = new VectorGraph("#card_map", card_vectors, {
             defaultRadius: 20,
-            repulsion: 500,
+            repulsion: 400,
             autoEdgeThresh: 0.1,
-            padding: 40,
+            padding: 50,
             drawLabel: false,
                 onHover: async (cardName) => {
                     if (cardName) {

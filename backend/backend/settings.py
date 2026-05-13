@@ -5,6 +5,8 @@ from pathlib import Path
 # Create environ
 env = environ.Env(DEBUG=(bool, False))
 
+LOCAL_DEVELOPMENT = env.bool("LOCAL_DEVELOPMENT", default=False)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 

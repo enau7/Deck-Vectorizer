@@ -85,7 +85,7 @@ input [type="url"] {
 }
 
 #card_map {
-    padding: 10px;
+    padding: 0px;
     border: 1px solid #95AFC8;
     border-radius: 10px;
     background-color: #f9f9f9;

@@ -15,6 +15,9 @@ from sklearn.metrics import silhouette_score
 import traceback
 
 # Create your views here.
+def developing_locally(request):
+    return HttpResponse(str(settings.LOCAL_DEVELOPMENT).lower())
+
 def home(request):
     return render(request, "home.html")
 
