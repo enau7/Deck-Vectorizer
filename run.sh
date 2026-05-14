@@ -3,7 +3,6 @@ apt-get install -y git-lfs
 git lfs install
 git lfs pull
 cd backend
-python myapp/static/json/get_and_process.py
 python manage.py makemigrations --noinput
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
