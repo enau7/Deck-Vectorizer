@@ -1,18 +1,27 @@
+# Django
 from django.shortcuts import render
 from django.http import HttpResponse
-from .models import TodoItem
-from deck_scraper.deck_scraper import DeckScraper, MultiDeckScraper
+from deck_scraper.deck_scraper.deck_scraper import DeckScraper
+from django.conf import settings
+
+# Models
+from myapp.models import Card, Deck, DeckCard
+
+# General Utilities
 import json
-from umap import UMAP
 import numpy as np
 import pandas as pd
-import os
-from django.conf import settings
+
+# Machine Learning
+from umap import UMAP
 from sklearn.cluster import KMeans, SpectralClustering
 from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import TfidfVectorizer, ENGLISH_STOP_WORDS
 from sklearn.metrics import silhouette_score
+
+# Error handling
 import traceback
+import os
 
 # Create your views here.
 def developing_locally(request):
@@ -33,11 +42,12 @@ def get_decklist(request, url):
             DECKSCRAPER = DeckScraper()
 
         deck = DeckScraper().scrape(url)
-        with open(os.path.join(settings.BASE_DIR, 'myapp/static/json/card_embeddings.json'), "r") as f:
-            card_embeddings = json.load(f)
 
         decklist_cards = deck["deck"].keys()
-        decklist_embeddings = {card: card_embeddings[card] for card in decklist_cards if card in card_embeddings}
+        decklist_embeddings = Card.objects.filter(name__in=decklist_cards).values("name", "embedding", "oracle_text", "img_src")
+        decklist_embeddings = {card["name"]: {"embedding": card["embedding"],
+                                            "oracle_text": card["oracle_text"],
+                                            "img_src": card["img_src"]} for card in decklist_embeddings}
         
         card_names = list(decklist_embeddings.keys())
         embeddings = [decklist_embeddings[name]["embedding"] for name in card_names]

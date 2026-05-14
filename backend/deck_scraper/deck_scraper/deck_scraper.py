@@ -1,4 +1,4 @@
-from deck_scraper.scraper import Scraper
+from deck_scraper.deck_scraper.scraper import Scraper
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
