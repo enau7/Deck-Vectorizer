@@ -1,2 +1,4 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+card_embeddings.json filter=lfs diff=lfs merge=lfs -text
+oracle_cards.json filter=lfs diff=lfs merge=lfs -text

@@ -1,3 +1,7 @@
+apt-get update
+apt-get install -y git-lfs
+git lfs install
+git lfs pull
 pip install ./deck_scraper
 cd backend
 python myapp/static/json/get_and_process.py
