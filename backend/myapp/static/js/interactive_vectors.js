@@ -53,8 +53,6 @@ async function fetchClusterLabels(decklist) {
 const url = document.getElementById("decklist_link");
 const start_button = document.getElementById("start");
 
-let card_vectors = null;
-
 function loading_animation(element, untilCondition = () => false) {
     const animation = ["Loading", "Loading.", "Loading..", "Loading..."];
     let index = 0;
@@ -69,16 +67,6 @@ function loading_animation(element, untilCondition = () => false) {
     return () => clearInterval(intervalId); // Return a function to stop the animation
 }
 
-async function loadData() {
-  try {
-    const response = await fetch('static/json/oracle_cards.json');
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Failed to load JSON:', error);
-  }
-}
-
 async function getImageLink(card_vectors, card_name) {
     try {
     const card = card_vectors[card_name];
@@ -86,6 +74,46 @@ async function getImageLink(card_vectors, card_name) {
     } catch (error) {
         console.error('Failed to get image:', error);
     }
+}
+
+function from_cluster_labels(cluster_labels) {
+    const legend = document.getElementById("legend");
+    legend.innerHTML = "";
+
+    for (const [color, label] of cluster_labels) {
+        const p = document.createElement("div");
+        p.style.color = color;
+        p.textContent = label;
+        legend.appendChild(p);
+    }
+}
+
+function from_card_vectors(card_vectors) {
+    hoverLabel = document.getElementById("hover_label");
+    hoverImage = document.getElementById("hover_img")
+    const graph = new VectorGraph("#card_map", card_vectors, {
+        defaultRadius: 20,
+        repulsion: 400,
+        autoEdgeThresh: 0.1,
+        padding: 50,
+        drawLabel: false,
+            onHover: async (cardName) => {
+                if (cardName) {
+                    hoverLabel.innerHTML = `${cardName}`; // Show card name on hover
+                    hoverImage.src = await getImageLink(card_vectors, cardName);
+                } else {
+                    hoverLabel.innerHTML = ""; // Clear label when not hovering
+                    hoverImage.src = "";
+                }
+            }
+    });
+
+    graph.start();
+    console.log("Graph started");
+
+    window.addEventListener("resize", async() => {
+        graph.resize(cardInfoDiv.clientWidth, cardInfoDiv.clientHeight)
+    })
 }
 
 start_button.addEventListener("click", async () => {
@@ -109,43 +137,10 @@ start_button.addEventListener("click", async () => {
 
         // Get and display clusters
         card_vectors = await fetchClusters()
-        hoverLabel = document.getElementById("hover_label");
-        hoverImage = document.getElementById("hover_img")
-        const graph = new VectorGraph("#card_map", card_vectors, {
-            defaultRadius: 20,
-            repulsion: 400,
-            autoEdgeThresh: 0.1,
-            padding: 50,
-            drawLabel: false,
-                onHover: async (cardName) => {
-                    if (cardName) {
-                        hoverLabel.innerHTML = `${cardName}`; // Show card name on hover
-                        hoverImage.src = await getImageLink(card_vectors, cardName);
-                    } else {
-                        hoverLabel.innerHTML = ""; // Clear label when not hovering
-                        hoverImage.src = "";
-                    }
-                }
-        });
-
-        graph.start();
-        console.log("Graph started");
-
-        window.addEventListener("resize", async() => {
-            graph.resize(cardInfoDiv.clientWidth, cardInfoDiv.clientHeight)
-        })
+        from_card_vectors(card_vectors);
 
         const cluster_labels = await fetchClusterLabels();
-        const legend = document.getElementById("legend");
-
-        legend.innerHTML = "";
-
-        for (const [color, label] of cluster_labels) {
-            const p = document.createElement("div");
-            p.style.color = color;
-            p.textContent = label;
-            legend.appendChild(p);
-        }
+        from_cluster_labels(cluster_labels);
 
         status.innerHTML = "";
 
@@ -158,3 +153,22 @@ start_button.addEventListener("click", async () => {
         }
     }
 });
+
+(async () => {
+    try {
+        const response = await fetch(`/myapp/load_session/`);
+        const data = await response.json();
+        if (data["status"] === "found") {
+            console.log("Session found, loading graph...");
+            const card_vectors = data["cluster"];
+            from_card_vectors(card_vectors);
+
+            const cluster_labels = data["cluster_labels"];
+            from_cluster_labels(cluster_labels);
+        } else {
+            console.log("No session found, waiting for user input...");
+        }
+    } catch (error) {
+        console.error("Error loading session:", error);
+    }
+})();

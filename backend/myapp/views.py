@@ -149,4 +149,14 @@ def get_cluster_labels(request):
         top_terms = sorted(top_terms, key=lambda x: len(x.split(" ")), reverse=True)
         best_labels.append((cluster_labels[i], " ".join(top_terms)))
 
+    request.session["cluster_labels"] = best_labels
+
     return HttpResponse(json.dumps(best_labels))
+
+def load_session(request):
+    cluster = request.session.get("cluster", None)
+    cluster_labels = request.session.get("cluster_labels", None)
+    if cluster is not None:
+        return HttpResponse(json.dumps({"status": "found", "cluster": cluster, "cluster_labels": cluster_labels}))
+    else:
+        return HttpResponse(json.dumps({"status": "empty"}))
