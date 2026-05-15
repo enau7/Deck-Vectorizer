@@ -14,8 +14,8 @@ JavaScript · HTML+CSS · Python
 ## How It Works
 
 1.  User uploads/pastes a decklist.
-2.  Backend scrapes decklist or interfaces with a public API to fetch decklist.
-3.  Frontend receives precomputed embedding.
+2.  Backend fetches deck as a list of card names.
+3.  Database provides card embeddings from card names.
 4.  UMAP transforms embeddings into 2D live.
 5.  Clusters are grouped and colored using spectral clustering.
 6.  Frontend renders an interactive scatterplot.
@@ -26,16 +26,17 @@ JavaScript · HTML+CSS · Python
     │
     ├── Card Data - https://scryfall.com/docs/api
     ├── Embeddings precomputed using SentenceTransformers.
-    └── Embeddings, card name, text and image uri saved to JSON file.
+    ├── Card names, embeddings, oracle text, and image uris saved to JSON file.
+    └── JSON file uploaded to database.
 
     Django App
     │
     ├── REST API Backend
     │   │
-    │   ├── Deck scraper/fetcher gets decklist.
-    │   ├── JSON/Database provides embeddings from card name (unique identifier for MTG).
-    │   ├── Dimensionality Reduction (UMAP).
-    │   └── Clusters generated (Spectral Clustering)
+    │   ├── Deck scraper/fetcher gets decklist as a list of card names.
+    │   ├── Database provides card embeddings from their card names (unique identifiers).
+    │   ├── UMAP performs dimensionality reduction on embeddings down to 2D.
+    │   └── Clusters generated with spectral clustering.
     │
     └── HTML/CSS/JS Frontend
         │
@@ -45,11 +46,11 @@ JavaScript · HTML+CSS · Python
 
     Postgres Database
     │
+    ├── Card table stores card name, embedding, oracle text, and image uri.
     └── Stores session and user information.
 
 ## Roadmap
 
--   Containerize with Docker for Git LFS.
 -   Better CI/CD and testing.
 -   "Recently visited" decklists.
 -   Card neighborhood visualization.

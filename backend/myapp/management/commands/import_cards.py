@@ -8,8 +8,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '-o',
-            '--override',
+            '-f',
+            '--force',
             action='store_true',
             help='Override existing cards even if they are up to date'
         )
@@ -20,7 +20,7 @@ class Command(BaseCommand):
             try:
                 metadata_data = json.load(f)
                 last_updated = metadata_data.get("last_updated")
-                if (last_updated == Metadata.objects.first().last_updated) and (not options['override']):
+                if (last_updated == Metadata.objects.first().last_updated) and (not options['force']):
                     self.stdout.write(self.style.SUCCESS('Cards are already up to date. No import needed.'))
                     return
                 else:
@@ -36,16 +36,18 @@ class Command(BaseCommand):
                 if counter % 100 == 0:
                     self.stdout.write(self.style.SUCCESS(f'Importing card {counter}: {name}'))
                 counter += 1
-                try:
-                    card = Card(
+                card = Card(
                         name=name,
                         oracle_text=data['oracle_text'],
                         embedding=data['embedding'],
                         img_src=data['img_src']
                     )
+                try:
                     card.save()
                 except Exception as e:
-                    pass
+                    Card.objects.filter(name=name).delete()
+                    card.save()
+
         
         Metadata.objects.all().delete()
         Metadata(last_updated=last_updated).save()
