@@ -8,7 +8,18 @@
         CardPond
       {% endblock %}
     </title>
+    {% load static %}
     <link rel="shortcut icon" href="static/images/Monet_w1507.ico" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"  rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/fonts.css' %}" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" rel="stylesheet" />
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -20,6 +31,9 @@
           <li class="nav-item {% if request.resolver_match.url_name == 'home' %} active {% endif %}">
             <a class="nav-link" href="{% url 'home' %}">Home</a>
           </li>
+          <li class="nav-item {% if request.resolver_match.url_name == 'dashboard' %} active {% endif %}">
+            <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+          </li>
           <li class="nav-item {% if request.resolver_match.url_name == 'about' %} active {% endif %}">
             <a class="nav-link" href="{% url 'about' %}">About</a>
           </li>
@@ -29,21 +43,17 @@
         </ul>
       </div>
     </nav>
-      <div id="content" class="container">
-        {% block content %} {% endblock %}
-        <center>
-        <div class="legal">
-          <small id="legal-wizards">
-            CardPond is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
-          </small>
-          <small id="legal-scryfall">
-            Card names, oracle text, and images are sourced from scryfall.com. Learn more: <a href="https://scryfall.com/docs/api">https://scryfall.com/docs/api</a>.
-          </small>
-        </div>
-      </center>
-      </div>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" ></script>
-    <div style="height: 100px"></div>
+    {% block content %} {% endblock %}
+    <footer class="legal">
+      <small id="legal-wizards">
+        CardPond is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.
+      </small>
+      <small id="legal-scryfall">
+        Card names, oracle text, and images are sourced from scryfall.com. Learn more: <a href="https://scryfall.com/docs/api">https://scryfall.com/docs/api</a>.
+      </small>
+    </footer>
   </body>
+
+  <!-- Toastify Script -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </html>

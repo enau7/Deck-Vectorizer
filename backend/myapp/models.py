@@ -10,7 +10,7 @@ class Card(models.Model):
     img_src = models.URLField()
 
 class Deck(models.Model):
-    name = models.CharField(max_length = 200)
+    url = models.URLField()
     cards = models.ManyToManyField(Card, null=True, blank=True, through='DeckCard')
 
 class DeckCard(models.Model):

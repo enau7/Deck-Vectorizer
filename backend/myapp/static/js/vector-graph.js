@@ -100,6 +100,7 @@
       labelColor:      '#333333',
       labelBelow:      true,
       drawLabel:       true,
+      drawImage:       true,
       backgroundColor: 'transparent',
       autoEdges:       true,
       autoEdgeThresh:  0.4,
@@ -122,8 +123,9 @@
         label:    def.label   !== undefined ? def.label   : k,
         color:    def.color   !== undefined ? def.color   : this.opts.defaultColor,
         radius:   def.radius  !== undefined ? def.radius  : this.opts.defaultRadius,
-        image:    def.image   !== undefined ? def.image   : null,
-        connections: def.connections || null,
+        image:    def.img_src   !== undefined ? def.img_src   : null,
+        connections: Array(this._keys.length).fill(false),
+        embedding: def.embedding || null,
         data:     def.data    || {},
         // physics state (canvas px)
         x:        this._targetPx[i].x,// + (Math.random() - 0.5) * this.opts.width * 0.05,
@@ -136,6 +138,8 @@
       };
     });
 
+    console.log(this._nodes[0].connections);
+
     // ── build edge list ──
     this._edges = this._buildEdges(nodeMap);
 
@@ -143,14 +147,16 @@
     this._loadImages();
 
     // ── canvas setup ──
+    const dpr = window.devicePixelRatio || 1;
     this._canvas = document.createElement('canvas');
-    this._canvas.width  = this.opts.width;
-    this._canvas.height = this.opts.height;
+    this._canvas.width  = this.opts.width * dpr;
+    this._canvas.height = this.opts.height * dpr;
     this._canvas.style.display = 'block';
     this._canvas.style.cursor  = 'default';
     this._container.innerHTML = '';
     this._container.appendChild(this._canvas);
     this._ctx = this._canvas.getContext('2d');
+    this._ctx.scale(dpr, dpr);
 
     // ── interaction state ──
     this._hoveredIdx = -1;
@@ -191,18 +197,10 @@
 
     const addEdge = (i, j) => {
       const key = i < j ? `${i},${j}` : `${j},${i}`;
+      this._nodes[i].connections[j] = true;
+      this._nodes[j].connections[i] = true;
       if (!seen.has(key)) { seen.add(key); edges.push({ i, j }); }
     };
-
-    // explicit connections declared in node data
-    for (let i = 0; i < n; i++) {
-      const conns = this._nodes[i].connections;
-      if (!conns) continue;
-      for (const targetKey of conns) {
-        const j = this._keys.indexOf(targetKey);
-        if (j >= 0) addEdge(i, j);
-      }
-    }
 
     // auto-edges based on embedding position proximity
     if (this.opts.autoEdges) {
@@ -211,7 +209,7 @@
       const maxD2  = (this.opts.autoEdgeThresh * Math.min(W, H)) ** 2;
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
-          if (euclidSq([tgt[i].x, tgt[i].y], [tgt[j].x, tgt[j].y]) <= maxD2) {
+          if (euclidSq(this._nodes[i].embedding, this._nodes[j].embedding) <= maxD2) {
             addEdge(i, j);
           }
         }
@@ -240,7 +238,8 @@
 
     const getCanvasPos = (e) => {
       const r  = c.getBoundingClientRect();
-      const sc = c.width / r.width;
+      const dpr = window.devicePixelRatio || 1;
+      const sc = c.width / r.width / dpr;
       const touch = e.touches ? e.touches[0] : e;
       return {
         x: (touch.clientX - r.left) * sc,
@@ -389,10 +388,13 @@
     ctx.globalAlpha = o.edgeOpacity;
 
     for (const { i, j } of this._edges) {
+      if (this._hoveredIdx !== i && this._hoveredIdx !== j) {
+      } else {
       ctx.beginPath();
       ctx.moveTo(nodes[i].x, nodes[i].y);
       ctx.lineTo(nodes[j].x, nodes[j].y);
       ctx.stroke();
+      }
     }
     ctx.restore();
 
@@ -410,10 +412,26 @@
         ctx.shadowBlur  = 14;
       }
 
+      var is_connected = false;
+      if (this._hoveredIdx >= 0 && this._hoveredIdx < nodes.length) {
+        try {
+          is_connected = nodes[this._hoveredIdx].connections[idx];
+        } catch (error) {
+          is_connected = false;
+        }
+      } else {
+        console.log("Hovered index out of bounds:", this._hoveredIdx);
+      }
+
+      var fillMod = false;
+      if (isHov || this._hoveredIdx < 0 || this._dragIdx < 0 || is_connected) {
+        fillMod = true;
+      }
+
       // colored ring
       ctx.beginPath();
       ctx.arc(nd.x, nd.y, r + o.ringWidth, 0, Math.PI * 2);
-      ctx.fillStyle = nd.color;
+      ctx.fillStyle = fillMod ? nd.color : "gray";
       ctx.fill();
 
       // clip circle for image / fill
@@ -422,26 +440,32 @@
       ctx.save();
       ctx.clip();
 
-      if (nd._imgLoaded && nd._img) {
+      if (nd._imgLoaded && nd._img && o.drawImage) {
         // draw image inside circle
-        ctx.drawImage(nd._img, nd.x - r, nd.y - r, r * 2, r * 2);
+        ctx.drawImage(nd._img, nd.x - 2.5 * r, nd.y - 1.6 * r, 5 * r, 5 * r);
       } else {
         // filled circle with lighter version of ring color
-        ctx.fillStyle = _lighten(nd.color, 0.6);
+        ctx.fillStyle = fillMod ? _lighten(nd.color, 0.6) : "lightgray";
         ctx.fillRect(nd.x - r, nd.y - r, r * 2, r * 2);
-        // initials
-        ctx.fillStyle    = nd.color;
-        ctx.font         = `bold ${Math.round(r * 0.55)}px sans-serif`;
-        ctx.textAlign    = 'center';
-        ctx.textBaseline = 'middle';
+      }
 
-        const shorthand = _shorthand(nd.label);
-        if (shorthand.length == 1) {
-          ctx.fillText(shorthand[0], nd.x, nd.y);
-        } else {
-          ctx.fillText(shorthand[0], nd.x, nd.y - r * 0.3);
-          ctx.fillText(shorthand[1], nd.x, nd.y + r * 0.3);
-        }
+      // initials
+      ctx.fillStyle    = fillMod ? nd.color : "gray";
+      ctx.font         = `bold ${Math.round(r * 0.55)}px sans-serif`;
+      ctx.shadowBlur   = 2;
+      ctx.shadowColor  = "white";
+      ctx.lineWidth    = 0;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+
+      const shorthand = _shorthand(nd.label);
+      if (shorthand.length == 1) {
+        ctx.fillText(shorthand[0], nd.x, nd.y);
+      } else {
+
+        // Text Fill
+        ctx.fillText(shorthand[0], nd.x, nd.y - r * 0.3);
+        ctx.fillText(shorthand[1], nd.x, nd.y + r * 0.3);
       }
 
       ctx.restore(); // un-clip
@@ -465,7 +489,7 @@
       ctx.roundRect(nd.x - tw / 2 - 5, labelY - 2, tw + 10, 18, 4);
       ctx.fill();
 
-      ctx.fillStyle = o.labelColor;
+      ctx.fillStyle = fillMod ? o.labelColor : "gray";
       ctx.fillText(nd.label, nd.x, labelY);
     }
   };
@@ -523,7 +547,7 @@
         color:  def.color  !== undefined ? def.color  : this.opts.defaultColor,
         radius: def.radius !== undefined ? def.radius : this.opts.defaultRadius,
         image:  def.image  !== undefined ? def.image  : null,
-        connections: def.connections || null,
+        connections: def.connections || Array(this._keys.length).fill(false),
         data:   def.data || {},
         x:    prev ? prev.x : newTargets[i].x + (Math.random() - 0.5) * this.opts.width,
         y:    prev ? prev.y : newTargets[i].y + (Math.random() - 0.5) * this.opts.height,
@@ -554,11 +578,14 @@
 
   /** Resize the canvas. Re-normalises target positions. */
   VectorGraph.prototype.resize = function (width, height) {
+    const dpr = window.devicePixelRatio || 1;
     this.opts.width  = width;
     this.opts.height = height;
-    this._canvas.width  = width;
-    this._canvas.height = height;
+    this._canvas.width  = width * dpr;
+    this._canvas.height = height * dpr;
     this._targetPx = this._normalisePositions(this._rawPositions);
+    this._ctx = this._canvas.getContext('2d');
+    this._ctx.scale(dpr, dpr);
     return this;
   };
 

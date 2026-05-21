@@ -30,6 +30,9 @@ def developing_locally(request):
 def home(request):
     return render(request, "home.html")
 
+def dashboard(request):
+    return render(request, "dashboard.html")
+
 def about(request):
     return render(request, "about.html")
 
@@ -42,6 +45,8 @@ def get_decklist(request, url):
             DECKSCRAPER = DeckScraper()
 
         deck = DeckScraper().scrape(url)
+
+        commander = deck["commander"]
 
         decklist_cards = deck["deck"].keys()
         decklist_embeddings = Card.objects.filter(name__in=decklist_cards).values("name", "embedding", "oracle_text", "img_src")
@@ -62,6 +67,8 @@ def get_decklist(request, url):
         }
         
         request.session["card_info"] = card_info
+        request.session["name"] = commander
+        request.session["url"] = url
 
         return HttpResponse(json.dumps(card_info))
     
@@ -152,6 +159,48 @@ def get_cluster_labels(request):
     request.session["cluster_labels"] = best_labels
 
     return HttpResponse(json.dumps(best_labels))
+
+
+def save_to_recents(request):
+    # Load data
+    name = request.session["commander"]
+    url = request.session["url"]
+    img = Card.objects.filter(name=name)[0]["img_src"]
+    cluster = request.session["cluster"]
+    labels = request.session["cluster_labels"]
+
+    # Initialize List
+    if request.session["recently_visited"] is not None:
+        request.session["recently_visited"] = list()
+
+    # If already in recents, pop that. Else, pop last element if recents longer than 3.
+    urls = [d["url"] for d in request.session["recently_visited"]]
+    loc = urls.find("url")
+    if loc != -1:
+        urls.pop(loc)
+    else:
+        if len(request.session["recently_visited"]) > 3:
+            request.session["recently_visited"].pop(-1)
+
+
+    request.session["recently_visited"].insert(0, {
+        "name":name,
+        "url":url,
+        "img":img,
+        "cluster":cluster,
+        "labels":labels,
+    })
+
+def load_from_recents(requests, loc):
+    try:
+        recently_visited = requests.session["recently_visited"][loc]
+    except Exception as e:
+        return HttpResponse({f"Error loading from recently visited: {e}"},404)
+    
+    requests.session["commander"] = recently_visited["name"]
+    requests.session["url"] = recently_visited["url"]
+    requests.session["cluster"] = recently_visited["cluster"]
+    requests.session["cluster_labels"] = recently_visited["labels"]
 
 def load_session(request):
     cluster = request.session.get("cluster", None)

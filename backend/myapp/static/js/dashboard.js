@@ -1,57 +1,5 @@
-const developing_locally = (async () => {
-    const response = await fetch(`/myapp/developing_locally/`);
-    if (!response.ok) {
-        throw new Error(`Failed to check local development status.`);
-    }
-    const localDevelopment = await response.json();
-    return localDevelopment === "true";
-})();
-
-async function fetchCardVectors(decklist) {
-    const response = await fetch(`/myapp/get_card_vectors/${encodeURIComponent(decklist)}`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch vectors for decklist: ${decklist}`);
-    }
-    return await response.json();
-}
-
-async function fetchDecklist(url) {
-    const response = await fetch(`/myapp/get_decklist/${encodeURIComponent(url)}`);
-    const body = await response.text();
-
-    if (!response.ok) {
-        let errorText = body;
-        try {errorText = JSON.stringify(JSON.parse(body));} catch (_) {}
-        throw new Error(`Failed to fetch card names for decklist: ${url}. Server replied: ${errorText}`);
-    }
-
-    // If OK, then try to parse JSON from the body we already read
-    try {
-        return JSON.parse(body);
-    } 
-    catch (e) {
-        throw new Error(`Invalid JSON returned from server: ${body}`);
-    }
-}
-
-async function fetchClusters() {
-    const response = await fetch(`/myapp/cluster_decklist/`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch clusters for decklist.`);
-    }
-    return await response.json();
-}
-
-async function fetchClusterLabels(decklist) {
-    const response = await fetch(`/myapp/get_cluster_labels/`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch cluster labels for decklist.`);
-    }
-    return await response.json();
-}
-
-const url = document.getElementById("decklist_link");
-const start_button = document.getElementById("start");
+const url = document.getElementById("decklist_url");
+const start_button = document.getElementById("submit");
 
 function loading_animation(element, untilCondition = () => false) {
     const animation = ["Loading", "Loading.", "Loading..", "Loading..."];
@@ -89,12 +37,14 @@ function from_cluster_labels(cluster_labels) {
 }
 
 function from_card_vectors(card_vectors) {
+    const cardInfoDiv = document.getElementById("card_map");
     hoverLabel = document.getElementById("hover_label");
     hoverImage = document.getElementById("hover_img")
     const graph = new VectorGraph("#card_map", card_vectors, {
         defaultRadius: 20,
         repulsion: 400,
-        autoEdgeThresh: 0.1,
+        autoEdgeThresh: 0.0001,
+        drawImage: false,
         padding: 50,
         drawLabel: false,
             onHover: async (cardName) => {
@@ -114,14 +64,16 @@ function from_card_vectors(card_vectors) {
     window.addEventListener("resize", async() => {
         graph.resize(cardInfoDiv.clientWidth, cardInfoDiv.clientHeight)
     })
+
+    return graph;
 }
 
 start_button.addEventListener("click", async () => {
+    const [overlay, popup] = await create_loading_popup();
     try {
         // Add loading animation in the card_info div
-        const cardInfoDiv = document.getElementById("card_map");
         const status = document.getElementById("status");
-        status.innerHTML = "Status: Fetching Decklist...";
+        popup.innerHTML = "Status: Fetching Decklist...";
 
         // Catch unsupported links
         if (!((url.value.includes("moxfield") && developing_locally) ||
@@ -130,19 +82,18 @@ start_button.addEventListener("click", async () => {
         }
 
         // Get and display decklist
-        card_names = await fetchDecklist(url.value);
-        card_names = card_names["card_names"]
+        const card_names = await fetchDecklist(url.value)["card_names"];
 
-        status.innerHTML = "Status: Clustering Data...";
+        popup.innerHTML = "Status: Clustering Data...";
 
         // Get and display clusters
-        card_vectors = await fetchClusters()
+        const card_vectors = await fetchClusters()
         from_card_vectors(card_vectors);
 
         const cluster_labels = await fetchClusterLabels();
         from_cluster_labels(cluster_labels);
 
-        status.innerHTML = "";
+        popup.innerHTML = "";
 
     } catch (error) {
         console.error("Error fetching card names:", error);
@@ -151,6 +102,10 @@ start_button.addEventListener("click", async () => {
         if (! url.value.includes("archidekt")){
             status.innerHTML = "<p>Status: Decklist provider not supported (Only Archidekt for now!).</p>"
         }
+    } finally {
+        popup.remove();
+        overlay.remove();
+        url.value="";
     }
 });
 

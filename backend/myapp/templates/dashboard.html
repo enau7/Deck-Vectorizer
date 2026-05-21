@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %} CardPond - Dashboard {% endblock %}
+{% block content %}
+{% load static %}
+
+<form class="decklist_url">
+    <div class="input-wrapper">
+        <input type="url" id="decklist_url" name="url" placeholder="Decklist URL">
+        <label for="decklist_url">Decklist URL</label>
+    </div>
+    <button type="button" id="submit">Submit</button>
+</form>
+<center>
+<div id="interactive-content">
+    <div id="card_info">
+        <p id="hover_label"></p>
+        <img id="hover_img">
+    </div>
+    <div id="card_map"></div>
+    <div id="legend"></div>
+</div>
+</center>
+
+{% load static %}
+<script src="{% static 'js/vector-graph.js' %}" defer></script>
+<script src="{% static 'js/vector-helper.js' %}" defer></script>
+<script src="{% static 'js/dashboard.js' %}" defer></script>
+{% endblock %}
