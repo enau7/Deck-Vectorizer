@@ -1,15 +1,41 @@
 {% extends "base.html" %} {% block title %} CardPond - Home {% endblock %}
 {% block content %}
-<form>
-    <div class="input-wrapper">
-        <input type="url" id="decklist_url" name="url" placeholder="Decklist URL">
-        <label for="decklist_url">Decklist URL</label>
+{% load static %}
+
+<div class="container">
+    <form class="item-full">
+        <div class="input-wrapper">
+            <input type="url" id="decklist_url" name="url" placeholder="https://archidekt.com/decks/21973130/traxos_storm">
+            <label for="decklist_url">Decklist URL</label>
+        </div>
+        <button type="button" id="submit">Submit</button>
+    </form>
+
+    <center class="item-full">
+        CardPond is a Magic: The Gathering deck analysis website that uses machine learning to graph and cluster cards by their text boxes.
+    </center>
+
+    <div class="item-full">
+        <h4 class="item-full">
+            How to Use
+        </h4>
+        <div class="info-card-container">
+            <div class="info-card item-less">
+                Submit a decklist in the form of an Archidekt link. Cardpond will graph and semantically cluster cards by their text boxes.
+            </div>
+            <div class="info-card item-less">
+                Press and hold on a node to highlight the similar cards within the deck. Different colors represent distinct card clusters.
+            </div>
+            <div class="info-card item-less">
+                Submit your own decklist to check theme density, or submit someone else's deck to understand which themes are present.
+            </div>
+        </div>
     </div>
-    <button type="button" id="submit">Submit</button>
-</form>
 
-<div id="recently_visited"></div>
-
+    <div class="recent_container item-full" id="recent_container">
+        <div class="recently_visited" id="recently_visited"></div>
+    </div>
+</div>
 {% load static %}
 <script src="{% static 'js/vector-helper.js' %}" defer></script>
 <script src="{% static 'js/home.js' %}" defer></script>

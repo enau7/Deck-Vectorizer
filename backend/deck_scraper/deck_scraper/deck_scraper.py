@@ -68,6 +68,9 @@ class ArchidektScraper():
     def get_commander(self):
         return self.response_dict["cards"][-1]["card"]["oracleCard"]["name"]
     
+    def get_name(self):
+        return self.response_dict["name"]
+    
     def get_deck(self):
         decklist = [card["card"]["oracleCard"]["name"] for card in self.response_dict["cards"]]
         return decklist
@@ -112,12 +115,14 @@ class DeckScraper():
 
                 # Get commander, deck, and counts from the scraper
                 commander = scraper.get_commander()
+                name = scraper.get_name() if scraper.get_name else commander
                 counts = scraper.get_counts()
                 deck = scraper.get_deck()
 
                 # Format to dictionary
                 decklist = {"commander": commander,
-                            "deck": dict(zip(deck, counts))}
+                            "deck": dict(zip(deck, counts)),
+                            "name": name}
                 return decklist
             
         raise TypeError(f"Decklist provider not supported: {url}.")

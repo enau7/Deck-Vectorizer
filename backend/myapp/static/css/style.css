@@ -5,6 +5,14 @@
     letter-spacing: -0.03em;
 }
 
+:root {
+    --primary-color: #ffffff;
+    --secondary-color: rgb(226, 226, 226);
+    --text-color: #b8b8b8;
+    --accent-color: #1a1a1c;
+    --confirm-color: #186df6;
+}
+
 #website-name {
     font-family: "Playfair Display", serif;
     font-size: 1.5em;
@@ -20,7 +28,7 @@ nav {
     background-color: azure;
 }
 
-html, body, #content, #interactive-content {
+html, body {
     min-height: 100%;
     min-width: 100%;
     height: 100%;
@@ -28,8 +36,38 @@ html, body, #content, #interactive-content {
 }
 
 body {
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: var(--primary-color);
+}
+
+main {
+    flex: 1;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+}
+
+.item-full {
+  /* Spans all 12 columns (full width) */
+  grid-column: span 12;
+}
+
+.item-more {
+  grid-column: span 8;
+}
+
+.item-half {
+  /* Spans 6 columns (half width) */
+  grid-column: span 6;
+}
+
+.item-less {
+    grid-column: span 4;
 }
 
 #lily-pond {
@@ -40,8 +78,8 @@ body {
 }
 
 footer{
-    align-self: center;
-    margin-top: auto;
+    align-self: flex-end;
+    justify-self: flex-end;
     margin-bottom: 10px;
     color: var(--text-color);
     text-align: center;
@@ -54,10 +92,9 @@ footer a {
 #interactive-content {
     display: flex;
     flex-direction: row;
-    align-items: center;
     flex-wrap: nowrap;
-    row-gap: 20px;
-    margin-top: 20px;
+    row-gap: 1em;
+    padding: 1em;
 }
 
 #card_info, #card_list, #legend {
@@ -78,9 +115,10 @@ footer a {
 
 #card_map {
     padding: 0px;
-    border: .15em solid var(--secondary-color);
+    border: none;
     border-radius: 10px;
     background-color: #f9f9f9;
+    box-shadow: 0 0 1em .2em var(--secondary-color);
     width: 60%;
     height: 70vh;
     overflow: hidden;
@@ -144,17 +182,6 @@ footer a {
     font-size: 1.2em;
 }
 
-:root {
-    --primary-color: #ffffff;
-    --secondary-color: rgb(226, 226, 226);
-    --text-color: #b8b8b8;
-    --accent-color: #1a1a1c;
-    --confirm-color: #186df6;
-}
-body {
-    background-color: var(--primary-color);
-}
-
 form {
     padding-top: 20px;
     display: flex;
@@ -189,7 +216,13 @@ form input {
     transition: box-shadow 0.2s cubic-bezier(0.25, 0.5, 0.45, 0.94);
 }
 form input::placeholder {
+    color: var(--text-color);
     opacity: 0;
+    transition: .3s ease-in-out;
+    max-width: 70%;
+}
+form input:focus::placeholder {
+    opacity: 1;
 }
 form input:focus {
     outline: none;
@@ -222,7 +255,7 @@ form input:focus ~ label {
 
 form input:not(:placeholder-shown) ~ label,
 form input:-webkit-autofill:active ~ label {
-    transform: translateY(-100%) translateX(100%) translateX(-7.5em);
+    transform: translateY(-80%) translateX(100%) translateX(-7.5em);
 }
 form input:-webkit-autofill:active ~ label {
     color: var(--accent-color);
@@ -247,6 +280,7 @@ form button {
     text-transform: uppercase;
     font-size: 16px;
     transition: all 0.3s cubic-bezier(0.25, 0.5, 0.45, 0.94);
+    box-shadow: 0 0 .5em .2em var(--secondary-color);
 }
 
 form button:hover {
@@ -254,4 +288,63 @@ form button:hover {
                 0 0 0px .25em var(--confirm-color);
     color: var(--accent-color);
     cursor: pointer;
+}
+
+.recent_container {
+    height: 100%;
+    width: 100%;
+    align-self: flex-start;
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: column;
+    align-items: center;
+}
+
+.recent_container h4 {
+    align-self: flex-start;
+}
+
+.recently_visited, .info-card-container {
+    width: 100%;
+    padding: 8px;
+    gap: 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.recent_deck, .info-card {
+    background: var(--primary-color);
+    background-position: 50% 20%;
+    background-size: 150%;
+    border-radius: 10px;
+    border: None;
+    width: 18em;
+    aspect-ratio: 4 / 3;
+    display:flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    font-weight: bold;
+    padding-left: .5em;
+    padding-bottom: .25em;
+    color: var(--secondary-color);
+    transition: all 0.1s ease-in-out;
+    box-shadow: 0 0 0 0 var(--confirm-color),
+                0 0 .5em .2em var(--secondary-color);
+}
+
+.info-card {
+    color: var(--accent-color);
+    padding: 1em;
+    text-align: center;
+    font-weight: normal;
+    align-content: center;
+    justify-content: center;
+}
+
+.recent_deck:hover {
+    box-shadow: 0 0 .1em .1em var(--confirm-color),
+                0 0 .5em .2em var(--secondary-color);
 }

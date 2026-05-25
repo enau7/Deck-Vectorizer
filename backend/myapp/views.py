@@ -36,17 +36,12 @@ def dashboard(request):
 def about(request):
     return render(request, "about.html")
 
-DECKSCRAPER = None
-
 def get_decklist(request, url):
     try:
-        global DECKSCRAPER
-        if DECKSCRAPER is None:
-            DECKSCRAPER = DeckScraper()
-
         deck = DeckScraper().scrape(url)
 
         commander = deck["commander"]
+        name = deck["name"]
 
         decklist_cards = deck["deck"].keys()
         decklist_embeddings = Card.objects.filter(name__in=decklist_cards).values("name", "embedding", "oracle_text", "img_src")
@@ -67,7 +62,8 @@ def get_decklist(request, url):
         }
         
         request.session["card_info"] = card_info
-        request.session["name"] = commander
+        request.session["name"] = name
+        request.session["commander"] = commander
         request.session["url"] = url
 
         return HttpResponse(json.dumps(card_info))
@@ -107,7 +103,11 @@ def cluster_decklist(request):
     embeddings_2d = pca.fit_transform(embeddings_2d)
 
     # Turn cluster labels into hex colors
-    cluster_colors = {i: f"#{np.random.randint(0, 0xFFFFFF):06x}" for i in set(cluster_labels)}
+    unique_labels = list(set(cluster_labels))
+    r = 0 # ratio of color wheel. I want to exclude yellows
+    hues = [int((i / len(unique_labels) * (1 - r) + r) * 360) for i in range(len(unique_labels))]
+    cluster_colors = {l: f"hsl({h}, 70%, 50%)" for l, h in zip(unique_labels, hues)}
+    light_colors = {l: f"hsl({h}, 70%, 78%)" for l, h in zip(unique_labels, hues)}
 
     # Scale vectors to 0 to 1 for better visualization
     min_vec = np.min(embeddings_2d, axis=0)
@@ -122,6 +122,7 @@ def cluster_decklist(request):
             "position": scaled_vectors[i].astype(float).tolist(),
             "oracle_text": oracle_texts[i],
             "color": cluster_colors[cluster_labels[i]],
+            "light_color": light_colors[cluster_labels[i]],
             "img_src": img_srcs[i],
         }
 
@@ -139,6 +140,7 @@ def get_cluster_labels(request):
     stop_words = list(ENGLISH_STOP_WORDS.union({"subdoc_boundary"}))
 
     vectorizer = TfidfVectorizer(
+        token_pattern='(?u)\\b\\w\\w\\w+\\b',
         stop_words=stop_words,
         ngram_range=(1, 3),
         smooth_idf=False,
@@ -154,7 +156,7 @@ def get_cluster_labels(request):
         top_indices = row.argsort()[-5:][::-1]
         top_terms = [labels[j] for j in top_indices]
         top_terms = sorted(top_terms, key=lambda x: len(x.split(" ")), reverse=True)
-        best_labels.append((cluster_labels[i], " ".join(top_terms)))
+        best_labels.append((cluster_labels[i], top_terms[0]))
 
     request.session["cluster_labels"] = best_labels
 
@@ -163,27 +165,19 @@ def get_cluster_labels(request):
 
 def save_to_recents(request):
     # Load data
-    name = request.session["commander"]
+    name = request.session["name"]
+    commander = request.session["commander"]
     url = request.session["url"]
-    img = Card.objects.filter(name=name)[0]["img_src"]
+    img = Card.objects.filter(name=commander)[0].img_src
     cluster = request.session["cluster"]
     labels = request.session["cluster_labels"]
-
-    # Initialize List
-    if request.session["recently_visited"] is not None:
-        request.session["recently_visited"] = list()
+    recents = request.session.get("recently_visited", [])
 
     # If already in recents, pop that. Else, pop last element if recents longer than 3.
-    urls = [d["url"] for d in request.session["recently_visited"]]
-    loc = urls.find("url")
-    if loc != -1:
-        urls.pop(loc)
-    else:
-        if len(request.session["recently_visited"]) > 3:
-            request.session["recently_visited"].pop(-1)
+    urls = {i: d["url"] for i, d in enumerate(recents) if url != d["url"]}
+    new_recents = [r for i, r in enumerate(recents) if i in urls.keys()]
 
-
-    request.session["recently_visited"].insert(0, {
+    new_recents.insert(0, {
         "name":name,
         "url":url,
         "img":img,
@@ -191,16 +185,33 @@ def save_to_recents(request):
         "labels":labels,
     })
 
+    if len(new_recents) > 3:
+        new_recents = new_recents[:3]
+
+    request.session["recently_visited"] = new_recents
+
+    return HttpResponse(json.dumps({"status": "success"}))
+
+def get_recents(requests):
+    recents = requests.session.get("recently_visited", None)
+    if recents is not None:
+        return HttpResponse(json.dumps({"status": "found", "recents": recents}))
+    else:
+        return HttpResponse(json.dumps({"status": "empty"}))
+
 def load_from_recents(requests, loc):
     try:
         recently_visited = requests.session["recently_visited"][loc]
     except Exception as e:
         return HttpResponse({f"Error loading from recently visited: {e}"},404)
     
-    requests.session["commander"] = recently_visited["name"]
+    requests.session["name"] = recently_visited["name"]
+    requests.session["commander"] = recently_visited["commander"]
     requests.session["url"] = recently_visited["url"]
     requests.session["cluster"] = recently_visited["cluster"]
     requests.session["cluster_labels"] = recently_visited["labels"]
+
+    return HttpResponse({f"Success"})
 
 def load_session(request):
     cluster = request.session.get("cluster", None)

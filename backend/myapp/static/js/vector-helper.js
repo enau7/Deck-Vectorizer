@@ -1,3 +1,52 @@
+const url = document.getElementById("decklist_url");
+const start_button = document.getElementById("submit");
+
+start_button.addEventListener("click", async (event) => {
+    const [overlay, popup] = await create_loading_popup();
+    try {
+
+        if (!((url.value.includes("moxfield") && developing_locally) ||
+               url.value.includes("archidekt"))) {
+            throw(new Error("Only Archidekt links are supported."));
+        }
+
+        popup.innerHTML = "Fetching decklist...";
+        decklist = await fetchDecklist(url.value);
+
+        popup.innerHTML = "Clustering cards...";
+        await fetchClusters();
+
+        popup.innerHTML = "Fetching cluster labels...";
+        await fetchClusterLabels();
+
+        // Save recent deck
+        await saveRecentDeck();
+
+        // Redirect to dashboard after loading
+        window.location.href = "/dashboard/";
+
+        popup.remove();
+        overlay.remove();
+    } catch (error) {
+        popup.remove()
+        overlay.remove()
+        Toastify({
+            text: error,
+            duration: 3000,
+            gravity: "top", // `top` or `bottom`
+            position: "center", // `left`, `center` or `right`
+            stopOnFocus: true, // Prevents dismissing of toast on hover
+            style: {
+                background: "white",
+                color: "red",
+            },
+            onClick: function(){} // Callback after click
+            }).showToast();
+    } finally {
+        url.value="";
+    }
+});
+
 const developing_locally = (async () => {
     const response = await fetch(`/myapp/developing_locally/`);
     if (!response.ok) {
@@ -63,4 +112,21 @@ async function fetchClusterLabels() {
         throw new Error(`Failed to fetch cluster labels for decklist.`);
     }
     return await response.json();
+}
+
+async function fetchRecentDecks() {
+    const response = await fetch(`/myapp/get_recents/`)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch recent decklists.`);
+    }
+    return await response.json();
+}
+
+async function loadRecentDeck(loc) {
+    const response = await fetch(`/myapp/load_from_recents/${loc}`);
+    window.location.href = "/dashboard/";
+}
+
+async function saveRecentDeck() {
+    const response = await fetch(`/myapp/save_to_recents/`);
 }

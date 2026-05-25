@@ -1,6 +1,3 @@
-const url = document.getElementById("decklist_url");
-const start_button = document.getElementById("submit");
-
 function loading_animation(element, untilCondition = () => false) {
     const animation = ["Loading", "Loading.", "Loading..", "Loading..."];
     let index = 0;
@@ -43,7 +40,7 @@ function from_card_vectors(card_vectors) {
     const graph = new VectorGraph("#card_map", card_vectors, {
         defaultRadius: 20,
         repulsion: 400,
-        autoEdgeThresh: 0.0001,
+        autoEdgeThresh: 0.40,
         drawImage: false,
         padding: 50,
         drawLabel: false,
@@ -67,47 +64,6 @@ function from_card_vectors(card_vectors) {
 
     return graph;
 }
-
-start_button.addEventListener("click", async () => {
-    const [overlay, popup] = await create_loading_popup();
-    try {
-        // Add loading animation in the card_info div
-        const status = document.getElementById("status");
-        popup.innerHTML = "Status: Fetching Decklist...";
-
-        // Catch unsupported links
-        if (!((url.value.includes("moxfield") && developing_locally) ||
-               url.value.includes("archidekt"))) {
-            throw(new Error("Only Archidekt links are supported."));
-        }
-
-        // Get and display decklist
-        const card_names = await fetchDecklist(url.value)["card_names"];
-
-        popup.innerHTML = "Status: Clustering Data...";
-
-        // Get and display clusters
-        const card_vectors = await fetchClusters()
-        from_card_vectors(card_vectors);
-
-        const cluster_labels = await fetchClusterLabels();
-        from_cluster_labels(cluster_labels);
-
-        popup.innerHTML = "";
-
-    } catch (error) {
-        console.error("Error fetching card names:", error);
-        const status = document.getElementById("status");
-        status.innerHTML = "<p>Status: Failed</p>";
-        if (! url.value.includes("archidekt")){
-            status.innerHTML = "<p>Status: Decklist provider not supported (Only Archidekt for now!).</p>"
-        }
-    } finally {
-        popup.remove();
-        overlay.remove();
-        url.value="";
-    }
-});
 
 (async () => {
     try {

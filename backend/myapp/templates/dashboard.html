@@ -4,12 +4,12 @@
 
 <form class="decklist_url">
     <div class="input-wrapper">
-        <input type="url" id="decklist_url" name="url" placeholder="Decklist URL">
+        <input type="url" id="decklist_url" name="url" placeholder="https://archidekt.com/decks/21973130/traxos_storm">
         <label for="decklist_url">Decklist URL</label>
     </div>
     <button type="button" id="submit">Submit</button>
 </form>
-<center>
+
 <div id="interactive-content">
     <div id="card_info">
         <p id="hover_label"></p>
@@ -18,7 +18,6 @@
     <div id="card_map"></div>
     <div id="legend"></div>
 </div>
-</center>
 
 {% load static %}
 <script src="{% static 'js/vector-graph.js' %}" defer></script>

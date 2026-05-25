@@ -122,6 +122,7 @@
         key:      k,
         label:    def.label   !== undefined ? def.label   : k,
         color:    def.color   !== undefined ? def.color   : this.opts.defaultColor,
+        light_color: def.light_color   !== undefined ? def.light_color   : "lightgray",
         radius:   def.radius  !== undefined ? def.radius  : this.opts.defaultRadius,
         image:    def.img_src   !== undefined ? def.img_src   : null,
         connections: Array(this._keys.length).fill(false),
@@ -138,7 +139,7 @@
       };
     });
 
-    console.log(this._nodes[0].connections);
+    console.log(this._nodes[0].color);
 
     // ── build edge list ──
     this._edges = this._buildEdges(nodeMap);
@@ -206,10 +207,9 @@
     if (this.opts.autoEdges) {
       const tgt    = this._targetPx;
       const W      = this.opts.width, H = this.opts.height;
-      const maxD2  = (this.opts.autoEdgeThresh * Math.min(W, H)) ** 2;
       for (let i = 0; i < n; i++) {
         for (let j = i + 1; j < n; j++) {
-          if (euclidSq(this._nodes[i].embedding, this._nodes[j].embedding) <= maxD2) {
+          if (_cosineSimilarity(this._nodes[i].embedding, this._nodes[j].embedding) >= this.opts.autoEdgeThresh) {
             addEdge(i, j);
           }
         }
@@ -419,8 +419,6 @@
         } catch (error) {
           is_connected = false;
         }
-      } else {
-        console.log("Hovered index out of bounds:", this._hoveredIdx);
       }
 
       var fillMod = false;
@@ -445,7 +443,7 @@
         ctx.drawImage(nd._img, nd.x - 2.5 * r, nd.y - 1.6 * r, 5 * r, 5 * r);
       } else {
         // filled circle with lighter version of ring color
-        ctx.fillStyle = fillMod ? _lighten(nd.color, 0.6) : "lightgray";
+        ctx.fillStyle = fillMod ? nd.light_color : "lightgray";
         ctx.fillRect(nd.x - r, nd.y - r, r * 2, r * 2);
       }
 
@@ -602,25 +600,27 @@
     return str.trim().split(/\s+/).slice(0, 2).map(w => w.slice(0, 3).toUpperCase());
   }
 
-  function _lighten(hex, amount) {
-    // parse hex, blend toward white
-    let r = 0, g = 0, b = 0;
-    if (hex && hex[0] === '#') {
-      const h = hex.slice(1);
-      if (h.length === 3) {
-        r = parseInt(h[0] + h[0], 16);
-        g = parseInt(h[1] + h[1], 16);
-        b = parseInt(h[2] + h[2], 16);
-      } else {
-        r = parseInt(h.slice(0, 2), 16);
-        g = parseInt(h.slice(2, 4), 16);
-        b = parseInt(h.slice(4, 6), 16);
-      }
+  function _cosineSimilarity(vectorA, vectorB) {
+    // Ensure vectors are the same length
+    if (vectorA.length !== vectorB.length) return 0;
+
+    let dotProduct = 0;
+    let magnitudeA = 0;
+    let magnitudeB = 0;
+
+    for (let i = 0; i < vectorA.length; i++) {
+      dotProduct += vectorA[i] * vectorB[i];
+      magnitudeA += vectorA[i] * vectorA[i];
+      magnitudeB += vectorB[i] * vectorB[i];
     }
-    r = Math.round(r + (255 - r) * amount);
-    g = Math.round(g + (255 - g) * amount);
-    b = Math.round(b + (255 - b) * amount);
-    return `rgb(${r},${g},${b})`;
+
+    magnitudeA = Math.sqrt(magnitudeA);
+    magnitudeB = Math.sqrt(magnitudeB);
+
+    // Avoid division by zero
+    if (magnitudeA === 0 || magnitudeB === 0) return 0;
+
+    return dotProduct / (magnitudeA * magnitudeB);
   }
 
   return VectorGraph;
