@@ -148,16 +148,16 @@
     this._loadImages();
 
     // ── canvas setup ──
-    const dpr = window.devicePixelRatio || 1;
+    this._dpr = window.devicePixelRatio || 1;
     this._canvas = document.createElement('canvas');
-    this._canvas.width  = this.opts.width * dpr;
-    this._canvas.height = this.opts.height * dpr;
+    this._canvas.width  = this.opts.width * this._dpr;
+    this._canvas.height = this.opts.height * this._dpr;
     this._canvas.style.display = 'block';
     this._canvas.style.cursor  = 'default';
     this._container.innerHTML = '';
     this._container.appendChild(this._canvas);
     this._ctx = this._canvas.getContext('2d');
-    this._ctx.scale(dpr, dpr);
+    this._ctx.scale(this._dpr, this._dpr);
 
     // ── interaction state ──
     this._hoveredIdx = -1;
@@ -238,8 +238,7 @@
 
     const getCanvasPos = (e) => {
       const r  = c.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const sc = c.width / r.width / dpr;
+      const sc = c.width / r.width / this._dpr;
       const touch = e.touches ? e.touches[0] : e;
       return {
         x: (touch.clientX - r.left) * sc,
@@ -356,6 +355,8 @@
       }
     }
 
+    let should_low_res = false;
+
     // integrate + damp
     for (let i = 0; i < n; i++) {
       if (this._dragIdx === i) continue;
@@ -363,7 +364,29 @@
       nodes[i].vy *= DAMP;
       nodes[i].x  += nodes[i].vx;
       nodes[i].y  += nodes[i].vy;
+      let speed = Math.sqrt(nodes[i].vx * nodes[i].vx + nodes[i].vy * nodes[i].vy)
+      if (speed > 0.2) {
+        should_low_res = true;
+        console.log("should low res!!")
+      } else {
+        console.log(nodes[i].vx)
+      }
     }
+
+    this._low_res(should_low_res);
+  };
+
+  // -- low_res --
+  VectorGraph.prototype._low_res = function (should_low_res) {
+    let previous_dpr = this._dpr;
+    if (should_low_res) {
+       this._dpr = 1;
+    } else {
+       this._dpr = window.devicePixelRatio || 1;
+    }
+    if (this._dpr != previous_dpr) {
+      this.resize(this.opts.width, this.opts.height);
+    };
   };
 
   // ── draw ──
@@ -576,14 +599,13 @@
 
   /** Resize the canvas. Re-normalises target positions. */
   VectorGraph.prototype.resize = function (width, height) {
-    const dpr = window.devicePixelRatio || 1;
     this.opts.width  = width;
     this.opts.height = height;
-    this._canvas.width  = width * dpr;
-    this._canvas.height = height * dpr;
+    this._canvas.width  = width * this._dpr;
+    this._canvas.height = height * this._dpr;
     this._targetPx = this._normalisePositions(this._rawPositions);
     this._ctx = this._canvas.getContext('2d');
-    this._ctx.scale(dpr, dpr);
+    this._ctx.scale(this._dpr, this._dpr);
     return this;
   };
 

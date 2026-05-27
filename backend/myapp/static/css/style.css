@@ -316,6 +316,7 @@ form button:hover {
 }
 
 .recent_deck, .info-card {
+    cursor: pointer;
     background: var(--primary-color);
     background-position: 50% 20%;
     background-size: 150%;
@@ -336,6 +337,7 @@ form button:hover {
 }
 
 .info-card {
+    cursor: default;
     color: var(--accent-color);
     padding: 1em;
     text-align: center;

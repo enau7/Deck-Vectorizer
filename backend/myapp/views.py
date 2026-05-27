@@ -206,7 +206,7 @@ def load_from_recents(requests, loc):
         return HttpResponse({f"Error loading from recently visited: {e}"},404)
     
     requests.session["name"] = recently_visited["name"]
-    requests.session["commander"] = recently_visited["commander"]
+    requests.session["commander"] = recently_visited.get("commander", "")
     requests.session["url"] = recently_visited["url"]
     requests.session["cluster"] = recently_visited["cluster"]
     requests.session["cluster_labels"] = recently_visited["labels"]
