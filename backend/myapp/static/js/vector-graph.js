@@ -108,45 +108,6 @@
       onHover:         null,
     });
 
-    // ── build internal node list ──
-    this._keys = Object.keys(nodeMap);
-    if (this._keys.length === 0) throw new Error('VectorGraph: nodeMap is empty');
-
-    // normalise positions into canvas px
-    this._rawPositions = this._keys.map(k => nodeMap[k].position);
-    this._targetPx     = this._normalisePositions(this._rawPositions);
-
-    this._nodes = this._keys.map((k, i) => {
-      const def = nodeMap[k];
-      return {
-        key:      k,
-        label:    def.label   !== undefined ? def.label   : k,
-        color:    def.color   !== undefined ? def.color   : this.opts.defaultColor,
-        light_color: def.light_color   !== undefined ? def.light_color   : "lightgray",
-        radius:   def.radius  !== undefined ? def.radius  : this.opts.defaultRadius,
-        image:    def.img_src   !== undefined ? def.img_src   : null,
-        connections: Array(this._keys.length).fill(false),
-        embedding: def.embedding || null,
-        data:     def.data    || {},
-        // physics state (canvas px)
-        x:        this._targetPx[i].x,// + (Math.random() - 0.5) * this.opts.width * 0.05,
-        y:        this._targetPx[i].y,// + (Math.random() - 0.5) * this.opts.height * 0.05,
-        vx:       0,
-        vy:       0,
-        // loaded image element
-        _img:     null,
-        _imgLoaded: false,
-      };
-    });
-
-    console.log(this._nodes[0].color);
-
-    // ── build edge list ──
-    this._edges = this._buildEdges(nodeMap);
-
-    // ── preload images ──
-    this._loadImages();
-
     // ── canvas setup ──
     this._dpr = window.devicePixelRatio || 1;
     this._canvas = document.createElement('canvas');
@@ -158,6 +119,84 @@
     this._container.appendChild(this._canvas);
     this._ctx = this._canvas.getContext('2d');
     this._ctx.scale(this._dpr, this._dpr);
+
+    // ── build internal node list ──
+    this._keys = Object.keys(nodeMap);
+    if (this._keys.length === 0) throw new Error('VectorGraph: nodeMap is empty');
+
+    // normalise positions into canvas px
+    this._rawPositions = this._keys.map(k => nodeMap[k].position);
+    this._targetPx     = this._normalisePositions(this._rawPositions);
+
+    this._nodes = this._keys.map((k, i) => {
+      const def = nodeMap[k];
+      let node = {
+        key:      k,
+        label:    def.label   !== undefined ? def.label   : k,
+        color:    def.color   !== undefined ? def.color   : this.opts.defaultColor,
+        light_color: def.light_color   !== undefined ? def.light_color   : "lightgray",
+        radius:   def.radius  !== undefined ? def.radius  : this.opts.defaultRadius,
+        image:    def.img_src   !== undefined ? def.img_src   : null,
+        connections: Array(this._keys.length).fill(false),
+        embedding: def.embedding || null,
+        data:     def.data    || {},
+        label_canvas_normal: document.createElement("canvas"),
+        label_canvas_dull: document.createElement("canvas"),
+        // physics state (canvas px)
+        x:        this._targetPx[i].x,// + (Math.random() - 0.5) * this.opts.width * 0.05,
+        y:        this._targetPx[i].y,// + (Math.random() - 0.5) * this.opts.height * 0.05,
+        vx:       0,
+        vy:       0,
+        // loaded image element
+        _img:     null,
+        _imgLoaded: false,
+      };
+      // Text rendering causes slowdown, so i'll pre-render the text onto a canvas
+
+      // Create two canvases
+      const canvases = [node.label_canvas_normal, node.label_canvas_dull];
+      const colors = [node.color, "gray"]
+      const r = this._dpr * node.radius;
+
+      canvases.forEach((canvas, i) => {
+        let color = colors[i]
+
+        // Set the height and widths
+        canvas.width = r * 2;
+        canvas.height = r * 2;
+
+        // Canvas
+        const ctx = canvas.getContext("2d");
+
+        // Initials
+        ctx.fillStyle    = color;
+        ctx.font         = `bold ${Math.round(r * 0.55)}px sans-serif`;
+        ctx.shadowBlur   = 2;
+        ctx.shadowColor  = "white";
+        ctx.lineWidth    = 0;
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+
+        const shorthand = _shorthand(node.label);
+        if (shorthand.length == 1) {
+          ctx.fillText(shorthand[0], r, r);
+        } else {
+          // Text Fill
+          ctx.fillText(shorthand[0], r, r - r * 0.3);
+          ctx.fillText(shorthand[1], r, r + r * 0.3);
+        }
+      });
+
+      return node;
+    });
+
+    console.log(this._nodes[0].color);
+
+    // ── build edge list ──
+    this._edges = this._buildEdges(nodeMap);
+
+    // ── preload images ──
+    this._loadImages();
 
     // ── interaction state ──
     this._hoveredIdx = -1;
@@ -355,8 +394,6 @@
       }
     }
 
-    let should_low_res = false;
-
     // integrate + damp
     for (let i = 0; i < n; i++) {
       if (this._dragIdx === i) continue;
@@ -365,15 +402,7 @@
       nodes[i].x  += nodes[i].vx;
       nodes[i].y  += nodes[i].vy;
       let speed = Math.sqrt(nodes[i].vx * nodes[i].vx + nodes[i].vy * nodes[i].vy)
-      if (speed > 0.2) {
-        should_low_res = true;
-        console.log("should low res!!")
-      } else {
-        console.log(nodes[i].vx)
-      }
     }
-
-    this._low_res(should_low_res);
   };
 
   // -- low_res --
@@ -471,22 +500,28 @@
       }
 
       // initials
-      ctx.fillStyle    = fillMod ? nd.color : "gray";
-      ctx.font         = `bold ${Math.round(r * 0.55)}px sans-serif`;
-      ctx.shadowBlur   = 2;
-      ctx.shadowColor  = "white";
-      ctx.lineWidth    = 0;
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
+      // ctx.fillStyle    = fillMod ? nd.color : "gray";
+      // ctx.font         = `bold ${Math.round(r * 0.55)}px sans-serif`;
+      // ctx.shadowBlur   = 2;
+      // ctx.shadowColor  = "white";
+      // ctx.lineWidth    = 0;
+      // ctx.textAlign    = 'center';
+      // ctx.textBaseline = 'middle';
 
-      const shorthand = _shorthand(nd.label);
-      if (shorthand.length == 1) {
-        ctx.fillText(shorthand[0], nd.x, nd.y);
+      // const shorthand = _shorthand(nd.label);
+      // if (shorthand.length == 1) {
+      //   ctx.fillText(shorthand[0], nd.x, nd.y);
+      // } else {
+
+      //   // Text Fill
+      //   ctx.fillText(shorthand[0], nd.x, nd.y - r * 0.3);
+      //   ctx.fillText(shorthand[1], nd.x, nd.y + r * 0.3);
+      // }
+      if (fillMod) {
+        // Display Colored Text Canvas
+        ctx.drawImage(nd.label_canvas_normal, nd.x - r, nd.y - r, 2 * r, 2 * r)
       } else {
-
-        // Text Fill
-        ctx.fillText(shorthand[0], nd.x, nd.y - r * 0.3);
-        ctx.fillText(shorthand[1], nd.x, nd.y + r * 0.3);
+        ctx.drawImage(nd.label_canvas_dull, nd.x - r, nd.y - r, 2 * r, 2 * r)
       }
 
       ctx.restore(); // un-clip
